@@ -329,8 +329,10 @@ INDEX_HTML = '''
                 </select>
                 {% if admin %}
                 <button class="btn btn-primary" onclick="openModal('addModal')">➕ Добавить</button>
-                <a href="{{ url_for('export_data') }}" class="btn">📤 Экспорт</a>
-                <a href="{{ url_for('import_data') }}" class="btn">📥 Импорт</a>
+                <a href="{{ url_for('admin_panel') }}" class="btn">⚙️</a>
+                <a href="{{ url_for('export_data') }}" class="btn">📤</a>
+                <a href="{{ url_for('import_data') }}" class="btn">📥</a>
+                <a href="{{ url_for('refresh') }}" class="btn">🔄</a>
                 <a href="{{ url_for('logout') }}" class="btn">🚪</a>
                 {% else %}
                 <a href="{{ url_for('login') }}" class="btn">🔐 Вход</a>
@@ -746,6 +748,94 @@ LOGIN_HTML = '''
 </html>
 '''
 
+ADMIN_HTML = '''
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Админ панель</title>
+    ''' + CSS + '''
+</head>
+<body data-theme="{{ theme }}">
+    <div class="container">
+        <header>
+            <div class="header-left">
+                <span class="logo">⚙️ Админ панель</span>
+            </div>
+            <div class="header-controls">
+                <a href="{{ url_for('index') }}" class="back-btn">← На главную</a>
+                <select class="theme-select" onchange="setTheme(this.value)">
+                    <option value="light" {% if theme == 'light' %}selected{% endif %}>☀️</option>
+                    <option value="dark" {% if theme == 'dark' %}selected{% endif %}>🌙</option>
+                    <option value="oled" {% if theme == 'oled' %}selected{% endif %}>⚫</option>
+                </select>
+            </div>
+        </header>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">{{ stats.total_models }}</div>
+                <div class="stat-label">Моделей</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ stats.total_photos }}</div>
+                <div class="stat-label">Фото</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ stats.total_videos }}</div>
+                <div class="stat-label">Видео</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ format_size(stats.total_size) }}</div>
+                <div class="stat-label">Общий размер</div>
+            </div>
+        </div>
+        
+        <div class="media-section">
+            <h2>📤 Экспорт данных</h2>
+            <p>Скачайте JSON файл со всеми данными моделей</p>
+            <a href="{{ url_for('export_data') }}" class="btn btn-primary">📥 Экспорт JSON</a>
+        </div>
+        
+        <div class="media-section">
+            <h2>📥 Импорт данных</h2>
+            <form method="post" action="{{ url_for('import_data') }}">
+                <div class="form-group">
+                    <label>JSON данные</label>
+                    <textarea name="json_data" placeholder='[{"name": "Модель", "tags": "тег1, тег2", "description": "Описание"}]'></textarea>
+                </div>
+                <button type="submit" class="btn-submit">📥 Импортировать</button>
+            </form>
+        </div>
+        
+        <div class="media-section">
+            <h2>🔄 Синхронизация</h2>
+            <p>Сканировать папку uploads и обновить базу данных</p>
+            <a href="{{ url_for('refresh') }}" class="btn btn-primary">🔄 Синхронизировать</a>
+        </div>
+        
+        <div class="media-section">
+            <h2>🔐 Смена пароля</h2>
+            <form method="post" action="{{ url_for('change_password') }}">
+                <div class="form-group">
+                    <label>Новый пароль</label>
+                    <input type="password" name="new_password" placeholder="Новый пароль" required>
+                </div>
+                <button type="submit" class="btn-submit">💾 Сохранить</button>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        function setTheme(theme) { document.body.setAttribute('data-theme', theme); localStorage.setItem('theme', theme); fetch('/set-theme/' + theme); }
+        const saved = localStorage.getItem('theme') || 'light';
+        document.body.setAttribute('data-theme', saved);
+    </script>
+</body>
+</html>
+'''
+
 PER_PAGE = 12
 
 @app.route('/')
@@ -922,6 +1012,35 @@ def login():
 def logout():
     session.pop('admin', None)
     return redirect(url_for('index'))
+
+@app.route('/admin')
+def admin_panel():
+    if not session.get('admin'):
+        return redirect(url_for('login'))
+    theme = session.get('theme', 'light')
+    
+    girls = Girl.query.all()
+    total_photos = sum(len(g.photos.split(',')) if g.photos else 0 for g in girls)
+    total_videos = sum(len(g.videos.split(',')) if g.videos else 0 for g in girls)
+    total_size = sum(get_folder_size(os.path.join(get_upload_folder(), sanitize_folder_name(g.name))) for g in girls)
+    
+    stats = {
+        'total_models': len(girls),
+        'total_photos': total_photos,
+        'total_videos': total_videos,
+        'total_size': total_size
+    }
+    
+    return render_template_string(ADMIN_HTML, theme=theme, stats=stats)
+
+@app.route('/change-password', methods=['POST'])
+def change_password():
+    if not session.get('admin'):
+        return redirect(url_for('login'))
+    new_password = request.form.get('new_password')
+    if new_password:
+        app.config['ADMIN_PASSWORD'] = new_password
+    return redirect(url_for('admin_panel'))
 
 @app.route('/set-theme/<theme>')
 def set_theme(theme):
