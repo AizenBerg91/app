@@ -25,12 +25,150 @@ class Girl(db.Model):
     video = db.Column(db.String(500))
     tags = db.Column(db.String(500))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    views = db.Column(db.Integer, default=0)
-    likes = db.Column(db.Integer, default=0)
-    is_favorite = db.Column(db.Boolean, default=False)
+
+def sanitize_filename(filename):
+    filename = os.path.basename(filename)
+    filename = ''.join(c for c in filename if c.isalnum() or c in '._-')
+    return filename[:200]
+
+def sanitize_folder_name(name):
+    name = name.strip()
+    name = ''.join(c if c.isalnum() or c in ' _-' else '_' for c in name)
+    return name[:50]
+
+def get_base_dir():
+    return os.path.dirname(os.path.abspath(__file__))
+
+def get_model_folder(model_name):
+    folder = os.path.join(get_base_dir(), 'uploads', model_name)
+    os.makedirs(folder, exist_ok=True)
+    return folder
+
+def get_upload_folder():
+    return os.path.join(get_base_dir(), 'uploads')
+
+def delete_folder(folder_path):
+    if os.path.exists(folder_path) and os.path.isdir(folder_path):
+        shutil.rmtree(folder_path)
+
+def sync_models_from_folders():
+    base_dir = get_base_dir()
+    uploads_dir = os.path.join(base_dir, 'uploads')
+    
+    if not os.path.exists(uploads_dir):
+        return
+    
+    existing_folders = set()
+    
+    for folder_name in os.listdir(uploads_dir):
+        folder_path = os.path.join(uploads_dir, folder_name)
+        if not os.path.isdir(folder_path):
+            continue
+            
+        existing_folders.add(folder_name)
+        
+        existing = Girl.query.filter_by(name=folder_name).first()
+        
+        if not existing:
+            girl = Girl(name=folder_name)
+            db.session.add(girl)
+            db.session.commit()
+            existing = girl
+        
+        files = os.listdir(folder_path)
+        image_ext = ('.jpg', '.jpeg', '.png', '.gif', '.webp')
+        video_ext = ('.mp4', '.webm', '.avi', '.mov')
+        
+        avatar_file = None
+        photo_files = []
+        video_file = None
+        
+        for f in files:
+            ext = os.path.splitext(f.lower())[1]
+            full_path = os.path.join(folder_name, f)
+            
+            if ext in image_ext:
+                if not avatar_file:
+                    avatar_file = full_path
+                    existing.avatar = avatar_file
+                else:
+                    photo_files.append(full_path)
+            elif ext in video_ext:
+                if not video_file:
+                    video_file = full_path
+                    existing.video = video_file
+        
+        if photo_files:
+            existing.photos = ','.join(photo_files)
+        
+        db.session.commit()
+    
+    for girl in Girl.query.all():
+        folder_name = sanitize_folder_name(girl.name)
+        if folder_name not in existing_folders:
+            db.session.delete(girl)
+    
+    db.session.commit()
 
 with app.app_context():
     db.create_all()
+    sync_models_from_folders()
+    
+    if not os.path.exists(uploads_dir):
+        return
+    
+    existing_folders = set()
+    
+    for folder_name in os.listdir(uploads_dir):
+        folder_path = os.path.join(uploads_dir, folder_name)
+        if not os.path.isdir(folder_path):
+            continue
+            
+        existing_folders.add(folder_name)
+        
+        existing = Girl.query.filter_by(name=folder_name).first()
+        
+        if not existing:
+            girl = Girl(name=folder_name)
+            db.session.add(girl)
+            db.session.commit()
+            existing = girl
+        
+        files = os.listdir(folder_path)
+        image_ext = ('.jpg', '.jpeg', '.png', '.gif', '.webp')
+        video_ext = ('.mp4', '.webm', '.avi', '.mov')
+        
+        avatar_file = None
+        photo_files = []
+        video_file = None
+        
+        for f in files:
+            ext = os.path.splitext(f.lower())[1]
+            full_path = os.path.join(folder_name, f)
+            
+            if ext in image_ext:
+                if not existing.avatar or 'avatar' in f.lower():
+                    if not avatar_file:
+                        avatar_file = full_path
+                        existing.avatar = avatar_file
+                else:
+                    photo_files.append(full_path)
+            elif ext in video_ext:
+                if not existing.video:
+                    video_file = full_path
+                    existing.video = video_file
+        
+        if photo_files and not existing.photos:
+            existing.photos = ','.join(photo_files)
+        
+        db.session.commit()
+    
+    for girl in Girl.query.all():
+        folder_name = sanitize_folder_name(girl.name)
+        if folder_name not in existing_folders:
+            db.session.delete(girl)
+    
+    db.session.commit()
 
 CSS = '''
 <style>
@@ -47,12 +185,11 @@ CSS = '''
     .theme-toggle:hover, .btn:hover { transform: scale(1.05); box-shadow: var(--shadow); }
     .btn-edit { background: var(--accent); color: white; border: none; }
     .btn-delete { background: #ef4444; color: white; border: none; }
-    .btn-fav { background: #f59e0b; color: white; border: none; }
     .search-box { display: flex; gap: 10px; margin-bottom: 25px; flex-wrap: wrap; }
     .search-box input { flex: 1; min-width: 200px; padding: 12px 18px; border: 2px solid var(--border); border-radius: 25px; font-size: 1rem; background: var(--bg-card); color: var(--text-primary); }
     .search-box input:focus { outline: none; border-color: var(--accent); }
     .filters { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 25px; }
-    .filter-btn { padding: 8px 16px; border-radius: 20px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text-primary); cursor: pointer; transition: all 0.3s; }
+    .filter-btn { padding: 8px 16px; border-radius: 20px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text-primary); cursor: pointer; transition: all 0.3s; text-decoration: none; }
     .filter-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
     .stats-bar { display: flex; gap: 20px; padding: 20px; background: var(--bg-card); border-radius: 15px; margin-bottom: 30px; flex-wrap: wrap; }
     .stat-item { text-align: center; }
@@ -61,8 +198,8 @@ CSS = '''
     .add-form, .edit-form { background: var(--bg-card); border-radius: 20px; padding: 30px; margin-bottom: 30px; box-shadow: var(--shadow); border: 1px solid var(--border); }
     .add-form h2, .edit-form h2 { margin-bottom: 20px; font-size: 1.3rem; }
     .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-    input[type="text"], input[type="password"], textarea { padding: 14px 18px; border: 2px solid var(--border); border-radius: 12px; font-size: 1rem; background: var(--bg-primary); color: var(--text-primary); width: 100%; }
-    input[type="text"]:focus, input[type="password"]:focus, textarea:focus { outline: none; border-color: var(--accent); }
+    input[type="text"], textarea { padding: 14px 18px; border: 2px solid var(--border); border-radius: 12px; font-size: 1rem; background: var(--bg-primary); color: var(--text-primary); width: 100%; }
+    input[type="text"]:focus, textarea:focus { outline: none; border-color: var(--accent); }
     textarea { min-height: 100px; resize: vertical; grid-column: 1 / -1; }
     .file-input-group { display: flex; flex-direction: column; gap: 8px; }
     .file-input-group label { font-size: 0.85rem; color: var(--text-secondary); font-weight: 500; }
@@ -75,16 +212,15 @@ CSS = '''
     .model-card:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15); }
     .model-avatar { width: 100%; height: 220px; object-fit: cover; background: var(--bg-primary); }
     .model-info { padding: 20px; }
-    .model-name { font-size: 1.3rem; font-weight: 600; margin-bottom: 8px; color: var(--text-primary); display: flex; justify-content: space-between; align-items: center; }
+    .model-name { font-size: 1.3rem; font-weight: 600; margin-bottom: 8px; color: var(--text-primary); }
     .model-desc { font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 10px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     .model-tags { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 10px; }
     .tag { padding: 4px 10px; background: var(--accent); color: white; border-radius: 15px; font-size: 0.75rem; }
-    .model-stats { display: flex; gap: 15px; font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 10px; }
+    .model-meta { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 10px; }
     .model-media { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; }
     .model-media img { width: 100%; height: 80px; object-fit: cover; border-radius: 8px; background: var(--bg-primary); cursor: pointer; }
     .model-actions { position: absolute; top: 10px; right: 10px; display: flex; gap: 8px; z-index: 10; }
     .model-actions .btn { padding: 8px 12px; font-size: 0.9rem; border-radius: 10px; }
-    .favorite-badge { position: absolute; top: 10px; left: 10px; font-size: 1.5rem; }
     .empty-state { text-align: center; padding: 60px 20px; color: var(--text-secondary); }
     .media-section { background: var(--bg-card); border-radius: 20px; padding: 30px; margin-bottom: 25px; box-shadow: var(--shadow); border: 1px solid var(--border); }
     .media-section h2 { font-size: 1.2rem; color: var(--text-secondary); margin-bottom: 20px; }
@@ -138,6 +274,7 @@ INDEX_HTML = '''
                 </select>
                 {% if admin %}
                 <a href="{{ url_for('export_data') }}" class="btn">📤 Экспорт</a>
+                <a href="{{ url_for('logout') }}" class="btn">🚪 Выход</a>
                 {% else %}
                 <a href="{{ url_for('login') }}" class="btn">🔐 Вход</a>
                 {% endif %}
@@ -149,14 +286,12 @@ INDEX_HTML = '''
             <div class="stat-item"><div class="stat-value">{{ stats.total_models }}</div><div class="stat-label">Всего моделей</div></div>
             <div class="stat-item"><div class="stat-value">{{ stats.total_photos }}</div><div class="stat-label">Фото</div></div>
             <div class="stat-item"><div class="stat-value">{{ stats.total_videos }}</div><div class="stat-label">Видео</div></div>
-            <div class="stat-item"><div class="stat-value">{{ stats.total_views }}</div><div class="stat-label">Просмотров</div></div>
-            <div class="stat-item"><div class="stat-value">{{ stats.total_likes }}</div><div class="stat-label">Лайков</div></div>
         </div>
         
         <form class="add-form" method="post" enctype="multipart/form-data">
             <h2>Добавить модель</h2>
             <div class="form-grid">
-                <input type="text" name="name" placeholder="Имя модели" required>
+                <input type="text" name="name" placeholder="Имя модели (будет создана папка)" required>
                 <input type="text" name="tags" placeholder="Теги (через запятую)">
                 <textarea name="description" placeholder="Описание модели"></textarea>
                 <div class="file-input-group">
@@ -183,23 +318,18 @@ INDEX_HTML = '''
         <div class="filters">
             <a href="{{ url_for('index', sort='name') }}" class="filter-btn {% if sort=='name' or not sort %}active{% endif %}">А-Я</a>
             <a href="{{ url_for('index', sort='newest') }}" class="filter-btn {% if sort=='newest' %}active{% endif %}">Новые</a>
-            <a href="{{ url_for('index', sort='popular') }}" class="filter-btn {% if sort=='popular' %}active{% endif %}">Популярные</a>
-            <a href="{{ url_for('index', sort='views') }}" class="filter-btn {% if sort=='views' %}active{% endif %}">По просмотрам</a>
-            {% if admin %}
-            <a href="{{ url_for('index', filter='favorites') }}" class="filter-btn {% if filter=='favorites' %}active{% endif %}">⭐ Избранное</a>
-            {% endif %}
         </div>
         
         {% if girls %}
         <div class="models-grid">
             {% for girl in girls %}
             <div class="model-card" onclick="window.location.href='{{ url_for('model_detail', girl_id=girl.id) }}'">
-                {% if girl.is_favorite %}<div class="favorite-badge">⭐</div>{% endif %}
+                {% if admin %}
                 <div class="model-actions" onclick="event.stopPropagation()">
                     <a href="{{ url_for('edit_girl', girl_id=girl.id) }}" class="btn btn-edit">✏️</a>
-                    <a href="{{ url_for('toggle_favorite', girl_id=girl.id) }}" class="btn btn-fav">{% if girl.is_favorite %}⭐{% else %}☆{% endif %}</a>
                     <a href="{{ url_for('delete_girl', girl_id=girl.id) }}" class="btn btn-delete" onclick="return confirm('Удалить модель {{ girl.name }}?')">🗑️</a>
                 </div>
+                {% endif %}
                 {% if girl.avatar %}
                 <img class="model-avatar" src="{{ url_for('uploaded_file', filename=girl.avatar) }}">
                 {% else %}
@@ -215,7 +345,7 @@ INDEX_HTML = '''
                         {% for tag in girl.tags.split(',') %}<span class="tag">{{ tag.strip() }}</span>{% endfor %}
                     </div>
                     {% endif %}
-                    <div class="model-stats">👁 {{ girl.views }} ❤️ {{ girl.likes }} 📅 {{ girl.created_at.strftime('%d.%m.%Y') }}</div>
+                    <div class="model-meta">📅 {{ girl.created_at.strftime('%d.%m.%Y') }}</div>
                     {% if girl.photos %}
                     <div class="model-media">
                         {% for photo in girl.photos.split(',') %}{% if photo %}<img src="{{ url_for('uploaded_file', filename=photo) }}">{% endif %}{% endfor %}
@@ -229,13 +359,13 @@ INDEX_HTML = '''
         {% if total_pages > 1 %}
         <div class="pagination">
             {% for p in range(1, total_pages + 1) %}
-            <a href="{{ url_for('index', page=p, sort=sort, filter=filter, search=search) }}" class="{% if p == page %}active{% endif %}">{{ p }}</a>
+            <a href="{{ url_for('index', page=p, sort=sort, search=search) }}" class="{% if p == page %}active{% endif %}">{{ p }}</a>
             {% endfor %}
         </div>
         {% endif %}
         {% else %}
         <div class="empty-state">
-            <p>Пока нет моделей. Добавьте первую!</p>
+            <p>Пока нет моделей. Создайте папку с именем модели в uploads!</p>
         </div>
         {% endif %}
     </div>
@@ -284,15 +414,14 @@ DETAIL_HTML = '''
         <div class="model-header">
             <h1>{{ girl.name }}</h1>
             <div class="detail-meta">
-                <span>👁 {{ girl.views }} просмотров</span>
-                <span>❤️ {{ girl.likes }} лайков</span>
                 <span>📅 {{ girl.created_at.strftime('%d.%m.%Y') }}</span>
             </div>
+            {% if admin %}
             <div class="detail-actions">
                 <a href="{{ url_for('edit_girl', girl_id=girl.id) }}" class="btn btn-edit">✏️ Редактировать</a>
-                <a href="{{ url_for('toggle_favorite', girl_id=girl.id) }}" class="btn btn-fav">{% if girl.is_favorite %}⭐ В избранном{% else %}☆ В избранное{% endif %}</a>
                 <a href="{{ url_for('delete_girl', girl_id=girl.id) }}" class="btn btn-delete" onclick="return confirm('Удалить модель?')">🗑️ Удалить</a>
             </div>
+            {% endif %}
         </div>
         
         {% if girl.description %}
@@ -387,17 +516,17 @@ EDIT_HTML = '''
                 <input type="text" name="tags" value="{{ girl.tags or '' }}" placeholder="Теги (через запятую)">
                 <textarea name="description">{{ girl.description or '' }}</textarea>
                 <div class="file-input-group">
-                    <label>📷 Аватар</label>
+                    <label>📷 Аватар (заменит текущий)</label>
                     {% if girl.avatar %}<div class="current-file">Текущий: {{ girl.avatar.split('/')[-1] }}</div>{% endif %}
                     <input type="file" name="avatar" accept="image/*">
                 </div>
                 <div class="file-input-group">
-                    <label>🖼️ Фото (можно несколько)</label>
+                    <label>🖼️ Фото (можно несколько, добавятся к существующим)</label>
                     {% if girl.photos %}<div class="current-file">Текущих: {{ girl.photos.split(',')|length }}</div>{% endif %}
                     <input type="file" name="photos" accept="image/*" multiple>
                 </div>
                 <div class="file-input-group">
-                    <label>🎬 Видео</label>
+                    <label>🎬 Видео (заменит текущее)</label>
                     {% if girl.video %}<div class="current-file">Текущее: {{ girl.video.split('/')[-1] }}</div>{% endif %}
                     <input type="file" name="video" accept="video/*">
                 </div>
@@ -439,31 +568,6 @@ LOGIN_HTML = '''
 </html>
 '''
 
-def sanitize_filename(filename):
-    filename = os.path.basename(filename)
-    filename = ''.join(c for c in filename if c.isalnum() or c in '._-')
-    return filename[:200]
-
-def sanitize_folder_name(name):
-    name = name.strip()
-    name = ''.join(c if c.isalnum() or c in ' _-' else '_' for c in name)
-    return name[:50]
-
-def get_base_dir():
-    return os.path.dirname(os.path.abspath(__file__))
-
-def get_model_folder(model_name):
-    folder = os.path.join(get_base_dir(), 'uploads', model_name)
-    os.makedirs(folder, exist_ok=True)
-    return folder
-
-def get_upload_folder():
-    return os.path.join(get_base_dir(), 'uploads')
-
-def delete_folder(folder_path):
-    if os.path.exists(folder_path) and os.path.isdir(folder_path):
-        shutil.rmtree(folder_path)
-
 PER_PAGE = 12
 
 @app.route('/')
@@ -472,7 +576,6 @@ def index():
     admin = session.get('admin', False)
     search = request.args.get('search', '')
     sort = request.args.get('sort', 'name')
-    filter_type = request.args.get('filter', '')
     page = int(request.args.get('page', 1))
     
     query = Girl.query
@@ -480,39 +583,28 @@ def index():
     if search:
         query = query.filter(Girl.name.ilike(f'%{search}%'))
     
-    if filter_type == 'favorites' and admin:
-        query = query.filter(Girl.is_favorite == True)
-    
     if sort == 'newest':
         query = query.order_by(Girl.created_at.desc())
-    elif sort == 'popular':
-        query = query.order_by(Girl.likes.desc())
-    elif sort == 'views':
-        query = query.order_by(Girl.views.desc())
     else:
         query = query.order_by(Girl.name)
     
     total = query.count()
-    total_pages = (total + PER_PAGE - 1) // PER_PAGE
+    total_pages = (total + PER_PAGE - 1) // PER_PAGE if total > 0 else 1
     girls = query.offset((page - 1) * PER_PAGE).limit(PER_PAGE).all()
     
     stats = {
         'total_models': Girl.query.count(),
         'total_photos': sum(len(g.photos.split(',')) if g.photos else 0 for g in Girl.query.all()),
-        'total_videos': sum(1 for g in Girl.query.all() if g.video),
-        'total_views': sum(g.views for g in Girl.query.all()),
-        'total_likes': sum(g.likes for g in Girl.query.all())
+        'total_videos': sum(1 for g in Girl.query.all() if g.video)
     }
     
     return render_template_string(INDEX_HTML, girls=girls, theme=theme, admin=admin, stats=stats, 
-                                search=search, sort=sort, filter=filter_type, page=page, total_pages=total_pages)
+                                search=search, sort=sort, page=page, total_pages=total_pages)
 
 @app.route('/model/<int:girl_id>')
 def model_detail(girl_id):
     theme = session.get('theme', 'light')
     girl = Girl.query.get_or_404(girl_id)
-    girl.views += 1
-    db.session.commit()
     return render_template_string(DETAIL_HTML, girl=girl, theme=theme)
 
 @app.route('/edit/<int:girl_id>')
@@ -556,7 +648,7 @@ def edit_girl_post(girl_id):
         girl.avatar = save_file(avatar_file, girl.avatar)
     
     if photos_files and photos_files[0].filename:
-        new_photos = []
+        new_photos = list(filter(None, (girl.photos or '').split(',')))
         for pf in photos_files:
             if pf.filename:
                 try:
@@ -594,17 +686,6 @@ def delete_girl(girl_id):
         delete_folder(folder_path)
     
     return redirect(url_for('index'))
-
-@app.route('/favorite/<int:girl_id>')
-def toggle_favorite(girl_id):
-    girl = Girl.query.get_or_404(girl_id)
-    girl.is_favorite = not girl.is_favorite
-    if girl.is_favorite:
-        girl.likes += 1
-    else:
-        girl.likes = max(0, girl.likes - 1)
-    db.session.commit()
-    return redirect(request.referrer or url_for('index'))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -688,9 +769,6 @@ def export_data():
             'avatar': g.avatar,
             'photos': g.photos,
             'video': g.video,
-            'views': g.views,
-            'likes': g.likes,
-            'is_favorite': g.is_favorite,
             'created_at': g.created_at.isoformat() if g.created_at else None
         })
     return json.dumps(data, ensure_ascii=False, indent=2), 200, {'Content-Type': 'application/json; charset=utf-8'}
@@ -703,6 +781,12 @@ def uploaded_file(filename):
     if os.path.exists(full_path):
         return send_from_directory(upload_folder, filename)
     abort(404)
+
+@app.route('/refresh')
+def refresh():
+    with app.app_context():
+        sync_models_from_folders()
+    return redirect(url_for('index'))
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=4444)
