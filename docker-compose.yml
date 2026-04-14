@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    ports:
+      - "4444:4444"
+    volumes:
+      - ./uploads:/app/uploads
+    environment:
+      - FLASK_APP=app.py
