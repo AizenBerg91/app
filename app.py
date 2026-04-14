@@ -56,6 +56,23 @@ def delete_folder(folder_path):
     if os.path.exists(folder_path) and os.path.isdir(folder_path):
         shutil.rmtree(folder_path)
 
+def get_folder_size(folder_path):
+    total = 0
+    if os.path.exists(folder_path):
+        for dirpath, dirnames, filenames in os.walk(folder_path):
+            for f in filenames:
+                fp = os.path.join(dirpath, f)
+                if os.path.exists(fp):
+                    total += os.path.getsize(fp)
+    return total
+
+def format_size(bytes_val):
+    for unit in ['Б', 'КБ', 'МБ', 'ГБ']:
+        if bytes_val < 1024:
+            return f"{bytes_val:.1f} {unit}"
+        bytes_val /= 1024
+    return f"{bytes_val:.1f} ГБ"
+
 def init_db():
     db.create_all()
     sync_models_from_folders()
@@ -216,7 +233,7 @@ header { display: flex; justify-content: space-between; align-items: center; pad
 .model-media { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
 .model-media img { width: 100%; height: 60px; object-fit: cover; border-radius: var(--radius-sm); cursor: pointer; transition: transform 0.3s; }
 .model-media img:hover { transform: scale(1.1); }
-.photo-count { font-size: 0.85rem; color: var(--text-secondary); margin-top: 12px; text-align: center; }
+.photo-count { font-size: 0.85rem; color: var(--text-secondary); margin-top: 12px; text-align: center; display: flex; justify-content: center; gap: 12px; }
 .model-actions { position: absolute; top: 16px; right: 16px; display: flex; gap: 10px; opacity: 0; transition: opacity 0.3s; }
 .model-card:hover .model-actions { opacity: 1; }
 .empty-state { text-align: center; padding: 100px 20px; }
@@ -386,39 +403,45 @@ INDEX_HTML = '''
                 <div class="stat-value">{{ stats.total_videos }}</div>
                 <div class="stat-label">Видео</div>
             </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ format_size(stats.total_size) }}</div>
+                <div class="stat-label">Всего</div>
+            </div>
         </div>
         {% endif %}
         
-        {% if girls %}
+        {% if girls_data %}
         <div class="models-grid">
-            {% for girl in girls %}
-            <div class="model-card" onclick="window.location.href='{{ url_for('model_detail', girl_id=girl.id) }}'">
+            {% for item in girls_data %}
+            <div class="model-card" onclick="window.location.href='{{ url_for('model_detail', girl_id=item.girl.id) }}'">
                 {% if admin %}
                 <div class="model-actions" onclick="event.stopPropagation()">
-                    <a href="{{ url_for('edit_girl', girl_id=girl.id) }}" class="btn btn-sm btn-primary">✏️</a>
-                    <a href="{{ url_for('delete_girl', girl_id=girl.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Удалить?')">🗑️</a>
+                    <a href="{{ url_for('edit_girl', girl_id=item.girl.id) }}" class="btn btn-sm btn-primary">✏️</a>
+                    <a href="{{ url_for('delete_girl', girl_id=item.girl.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Удалить?')">🗑️</a>
                 </div>
                 {% endif %}
-                {% if girl.avatar %}
-                <img class="model-image" src="{{ url_for('uploaded_file', filename=girl.avatar) }}">
+                {% if item.girl.avatar %}
+                <img class="model-image" src="{{ url_for('uploaded_file', filename=item.girl.avatar) }}">
                 {% else %}
                 <div class="model-image-placeholder">👤</div>
                 {% endif %}
                 <div class="model-content">
-                    <h3 class="model-name">{{ girl.name }}</h3>
-                    {% if girl.description %}
-                    <p class="model-desc">{{ girl.description }}</p>
+                    <h3 class="model-name">{{ item.girl.name }}</h3>
+                    {% if item.girl.description %}
+                    <p class="model-desc">{{ item.girl.description }}</p>
                     {% endif %}
-                    {% if girl.tags %}
+                    {% if item.girl.tags %}
                     <div class="model-tags">
-                        {% for tag in girl.tags.split(',') %}<span class="tag">{{ tag.strip() }}</span>{% endfor %}
+                        {% for tag in item.girl.tags.split(',') %}<span class="tag">{{ tag.strip() }}</span>{% endfor %}
                     </div>
                     {% endif %}
-                    {% if girl.photos %}
-                    <div class="model-media">
-                        {% for photo in girl.photos.split(',') %}{% if photo %}<img src="{{ url_for('uploaded_file', filename=photo) }}">{% endif %}{% endfor %}
+                    <div class="photo-count">
+                        📷 {{ item.photo_count }} &nbsp;🎬 {{ item.video_count }} &nbsp;💾 {{ format_size(item.size) }}
                     </div>
-                    <div class="photo-count">📷 {{ girl.photos.split(',')|length }}</div>
+                    {% if item.girl.photos %}
+                    <div class="model-media">
+                        {% for photo in item.girl.photos.split(',') %}{% if photo %}<img src="{{ url_for('uploaded_file', filename=photo) }}">{% endif %}{% endfor %}
+                    </div>
                     {% endif %}
                 </div>
             </div>
@@ -746,15 +769,32 @@ def index():
     
     total = query.count()
     total_pages = (total + PER_PAGE - 1) // PER_PAGE if total > 0 else 1
-    girls = query.offset((page - 1) * PER_PAGE).limit(PER_PAGE).all()
+    girls_data = []
+    total_photos = 0
+    total_videos = 0
+    total_size = 0
+    
+    for g in query.offset((page - 1) * PER_PAGE).limit(PER_PAGE).all():
+        folder_path = os.path.join(get_upload_folder(), sanitize_folder_name(g.name))
+        size = get_folder_size(folder_path)
+        total_size += size
+        total_photos += len(g.photos.split(',')) if g.photos else 0
+        total_videos += len(g.videos.split(',')) if g.videos else 0
+        girls_data.append({
+            'girl': g,
+            'size': size,
+            'photo_count': len(g.photos.split(',')) if g.photos else 0,
+            'video_count': len(g.videos.split(',')) if g.videos else 0
+        })
     
     stats = {
         'total_models': total,
-        'total_photos': sum(len(g.photos.split(',')) if g.photos else 0 for g in girls),
-        'total_videos': sum(len(g.videos.split(',')) if g.videos else 0 for g in girls)
+        'total_photos': total_photos,
+        'total_videos': total_videos,
+        'total_size': total_size
     }
     
-    return render_template_string(INDEX_HTML, girls=girls, theme=theme, admin=admin, stats=stats, 
+    return render_template_string(INDEX_HTML, girls_data=girls_data, theme=theme, admin=admin, stats=stats,
                                 search=search, sort=sort, page=page, total_pages=total_pages)
 
 @app.route('/model/<int:girl_id>')
@@ -1041,6 +1081,7 @@ def uploaded_file(filename):
     abort(404)
 
 app.jinja_env.globals['quote'] = quote
+app.jinja_env.globals['format_size'] = format_size
 app.jinja_env.globals['urlencode'] = lambda x: quote(x, safe='') if x else ''
 
 @app.route('/refresh')
