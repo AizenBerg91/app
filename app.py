@@ -4,6 +4,7 @@ import shutil
 import json
 from datetime import datetime
 from flask import Flask, render_template_string, request, redirect, url_for, session, send_from_directory, abort
+from urllib.parse import quote
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
@@ -24,7 +25,7 @@ class Girl(db.Model):
     description = db.Column(db.Text)
     avatar = db.Column(db.String(500))
     photos = db.Column(db.String(2000))
-    video = db.Column(db.String(500))
+    videos = db.Column(db.String(2000))
     tags = db.Column(db.String(500))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -86,7 +87,7 @@ def sync_models_from_folders():
         
         avatar_file = None
         photo_files = []
-        video_file = None
+        video_files = []
         
         avatar_folder = os.path.join(folder_path, 'avatar')
         photo_folder = os.path.join(folder_path, 'photo')
@@ -116,15 +117,14 @@ def sync_models_from_folders():
             for f in os.listdir(video_folder):
                 ext = os.path.splitext(f)[1].lower()
                 if ext in video_ext:
-                    video_file = os.path.join(folder_name, 'video', f).replace('\\', '/')
-                    break
+                    video_files.append(os.path.join(folder_name, 'video', f).replace('\\', '/'))
         
         if avatar_file:
             existing.avatar = avatar_file
         if photo_files:
             existing.photos = ','.join(photo_files)
-        if video_file:
-            existing.video = video_file
+        if video_files:
+            existing.videos = ','.join(video_files)
         
         db.session.commit()
     
@@ -352,7 +352,7 @@ INDEX_HTML = '''
                         </div>
                         <div class="form-group">
                             <label>🎬 Видео</label>
-                            <input type="file" name="video" accept="video/*">
+                            <input type="file" name="videos" accept="video/*" multiple>
                         </div>
                         <button type="submit" class="btn-submit">Добавить</button>
                     </div>
@@ -550,14 +550,16 @@ DETAIL_HTML = '''
         </div>
         {% endif %}
         
-        {% if girl.video %}
+        {% if girl.videos %}
         <div class="media-section">
-            <h2><span>🎬</span> Видео</h2>
+            <h2><span>🎬</span> Видео ({{ girl.videos.split(',')|length }})</h2>
+            {% for video in girl.videos.split(',') %}{% if video %}
             <div class="video-container">
                 <video controls>
-                    <source src="{{ url_for('uploaded_file', filename=girl.video) }}" type="video/mp4">
+                    <source src="{{ url_for('uploaded_file', filename=video) }}" type="video/mp4">
                 </video>
             </div>
+            {% endif %}{% endfor %}
         </div>
         {% elif not girl.photos and not girl.avatar %}
         <div class="media-section">
@@ -651,8 +653,8 @@ EDIT_HTML = '''
                     </div>
                     <div class="form-group">
                         <label>🎬 Видео</label>
-                        {% if girl.video %}<div class="current-file">Текущее: {{ girl.video.split('/')[-1] }}</div>{% endif %}
-                        <input type="file" name="video" accept="video/*">
+                        {% if girl.videos %}<div class="current-file">Текущих: {{ girl.videos.split(',')|length }}</div>{% endif %}
+                        <input type="file" name="videos" accept="video/*" multiple>
                     </div>
                     <button type="submit" class="btn-submit">💾 Сохранить</button>
                 </div>
@@ -749,7 +751,7 @@ def index():
     stats = {
         'total_models': total,
         'total_photos': sum(len(g.photos.split(',')) if g.photos else 0 for g in girls),
-        'total_videos': sum(1 for g in girls if g.video)
+        'total_videos': sum(len(g.videos.split(',')) if g.videos else 0 for g in girls)
     }
     
     return render_template_string(INDEX_HTML, girls=girls, theme=theme, admin=admin, stats=stats, 
@@ -807,7 +809,7 @@ def edit_girl_post(girl_id):
     
     avatar_file = request.files.get('avatar')
     photos_files = request.files.getlist('photos')
-    video_file = request.files.get('video')
+    videos_files = request.files.getlist('videos')
     
     if avatar_file and avatar_file.filename:
         girl.avatar = save_file(avatar_file, girl.avatar, 'avatar')
@@ -826,8 +828,19 @@ def edit_girl_post(girl_id):
         if new_photos:
             girl.photos = ','.join(new_photos)
     
-    if video_file and video_file.filename:
-        girl.video = save_file(video_file, girl.video, 'video')
+    if videos_files and videos_files[0].filename:
+        new_videos = list(filter(None, (girl.videos or '').split(',')))
+        for vf in videos_files:
+            if vf.filename:
+                try:
+                    safe_name = sanitize_filename(vf.filename)
+                    filepath = os.path.join(model_folder, 'video', safe_name)
+                    vf.save(filepath)
+                    new_videos.append(f"{new_folder}/video/{safe_name}")
+                except Exception:
+                    pass
+        if new_videos:
+            girl.videos = ','.join(new_videos)
     
     db.session.commit()
     
@@ -926,7 +939,7 @@ def add_girl_post():
     
     girl.avatar = save_file(request.files.get('avatar'), 'avatar')
     girl.photos = save_multiple_files(request.files.getlist('photos'), 'photo')
-    girl.video = save_file(request.files.get('video'), 'video')
+    girl.videos = save_multiple_files(request.files.getlist('videos'), 'video')
     db.session.commit()
     
     return redirect(url_for('index'))
@@ -944,7 +957,7 @@ def export_data():
             'tags': g.tags,
             'avatar': g.avatar,
             'photos': g.photos,
-            'video': g.video,
+            'videos': g.videos,
             'created_at': g.created_at.isoformat() if g.created_at else None
         })
     return json.dumps(data, ensure_ascii=False, indent=2), 200, {'Content-Type': 'application/json; charset=utf-8'}
@@ -966,7 +979,7 @@ def import_data():
                     existing.tags = item.get('tags', '')
                     existing.avatar = item.get('avatar', '')
                     existing.photos = item.get('photos', '')
-                    existing.video = item.get('video', '')
+                    existing.videos = item.get('videos', '')
                 else:
                     girl = Girl(
                         name=name,
@@ -974,7 +987,7 @@ def import_data():
                         tags=item.get('tags', ''),
                         avatar=item.get('avatar', ''),
                         photos=item.get('photos', ''),
-                        video=item.get('video', '')
+                        videos=item.get('videos', '')
                     )
                     db.session.add(girl)
                 folder_name = sanitize_folder_name(name)
@@ -1017,6 +1030,7 @@ def import_data():
     </body>
     </html>
     ''')
+@app.route('/uploads/<path:filename>')
 def uploaded_file(filename):
     upload_folder = get_upload_folder()
     filename = filename.replace('\\', '/')
@@ -1025,6 +1039,9 @@ def uploaded_file(filename):
         if os.path.exists(safe_path):
             return send_from_directory(upload_folder, filename)
     abort(404)
+
+app.jinja_env.globals['quote'] = quote
+app.jinja_env.globals['urlencode'] = lambda x: quote(x, safe='') if x else ''
 
 @app.route('/refresh')
 def refresh():
