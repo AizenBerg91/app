@@ -113,33 +113,37 @@ def sync_models_from_folders():
         image_ext = ('.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp')
         video_ext = ('.mp4', '.webm', '.avi', '.mov', '.mkv')
         
+        def has_image_ext(f):
+            lower = f.lower()
+            return lower.endswith('.jpg') or lower.endswith('.jpeg') or lower.endswith('.png') or lower.endswith('.gif') or lower.endswith('.webp') or lower.endswith('.bmp')
+        
+        def has_video_ext(f):
+            lower = f.lower()
+            return lower.endswith('.mp4') or lower.endswith('.webm') or lower.endswith('.avi') or lower.endswith('.mov') or lower.endswith('.mkv')
+        
         print(f"Processing: {folder_name}")
         
         if os.path.exists(avatar_folder):
             avatar_files = os.listdir(avatar_folder)
             for f in avatar_files:
-                ext = os.path.splitext(f)[1].lower()
-                if ext in image_ext:
+                if has_image_ext(f):
                     avatar_file = os.path.join(folder_name, 'avatar', f).replace('\\', '/')
                     break
         
         if os.path.exists(photo_folder):
             photo_list = os.listdir(photo_folder)
-            for f in photo_list:
-                ext = os.path.splitext(f)[1].lower()
-                if ext in image_ext:
-                    photo_files.append(os.path.join(folder_name, 'photo', f).replace('\\', '/'))
+            photo_files = sorted([os.path.join(folder_name, 'photo', f).replace('\\', '/') for f in photo_list if has_image_ext(f)])
         
         if os.path.exists(video_folder):
-            for f in os.listdir(video_folder):
-                ext = os.path.splitext(f)[1].lower()
-                if ext in video_ext:
-                    video_files.append(os.path.join(folder_name, 'video', f).replace('\\', '/'))
+            video_list = os.listdir(video_folder)
+            video_files = sorted([os.path.join(folder_name, 'video', f).replace('\\', '/') for f in video_list if has_video_ext(f)])
         
         if avatar_file:
             existing.avatar = avatar_file
+        
         if photo_files:
             existing.photos = ','.join(photo_files)
+        
         if video_files:
             existing.videos = ','.join(video_files)
         
@@ -438,11 +442,13 @@ INDEX_HTML = '''
                     </div>
                     {% endif %}
                     <div class="photo-count">
-                        📷 {{ item.photo_count }} &nbsp;🎬 {{ item.video_count }} &nbsp;💾 {{ format_size(item.size) }}
+                        {{ item.photo_count }} фото, {{ item.video_count }} видео, {{ format_size(item.size) }}
                     </div>
                     {% if item.girl.photos %}
                     <div class="model-media">
-                        {% for photo in item.girl.photos.split(',') %}{% if photo %}<img src="{{ url_for('uploaded_file', filename=photo) }}">{% endif %}{% endfor %}
+                        {% for photo in item.girl.photos.split(',') %}
+                        <img src="{{ url_for('uploaded_file', filename=photo) }}">
+                        {% endfor %}
                     </div>
                     {% endif %}
                 </div>
@@ -868,13 +874,22 @@ def index():
         folder_path = os.path.join(get_upload_folder(), sanitize_folder_name(g.name))
         size = get_folder_size(folder_path)
         total_size += size
-        total_photos += len(g.photos.split(',')) if g.photos else 0
-        total_videos += len(g.videos.split(',')) if g.videos else 0
+        
+        photo_count = 0
+        video_count = 0
+        if g.photos:
+            parts = g.photos.split(',')
+            photo_count = len(parts)
+        if g.videos:
+            video_count = len(g.videos.split(','))
+        
+        total_photos += photo_count
+        total_videos += video_count
         girls_data.append({
             'girl': g,
             'size': size,
-            'photo_count': len(g.photos.split(',')) if g.photos else 0,
-            'video_count': len(g.videos.split(',')) if g.videos else 0
+            'photo_count': photo_count,
+            'video_count': video_count
         })
     
     stats = {
