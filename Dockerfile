@@ -1,12 +1,15 @@
-FROM python:3.11-slim
+FROM node:18-alpine
 
 WORKDIR /app
 
-COPY requirements.txt .
-RUN pip install -r requirements.txt
+COPY package*.json ./
+
+RUN npm install --production
 
 COPY . .
 
+RUN mkdir -p uploads videos data
+
 EXPOSE 4444
 
-CMD ["python", "app.py"]
+CMD ["node", "server.js"]

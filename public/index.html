@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Model Catalog</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #0f0f1a; --card-bg: #1a1a2e; --accent: #e94560;
+            --accent-hover: #d63851; --text: #eaeaea; --text-muted: #888;
+            --secondary: #16213e; --border: #2a2a4a;
+        }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+        
+        header {
+            background: linear-gradient(180deg, var(--card-bg), rgba(26,26,46,0.95));
+            padding: 16px 24px; display: flex; align-items: center; gap: 24px;
+            position: sticky; top: 0; z-index: 100; border-bottom: 1px solid var(--border);
+        }
+        .logo { font-size: 22px; font-weight: 700; background: linear-gradient(135deg, var(--accent), #ff6b8a); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .search-box { flex: 1; max-width: 400px; }
+        .search-box input { width: 100%; padding: 12px 16px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg); color: var(--text); font-size: 14px; }
+        .search-box input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(233,69,96,0.15); }
+        
+        .btn { padding: 12px 20px; border: none; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.2s; }
+        .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent-hover)); color: white; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(233,69,96,0.4); }
+        .btn-secondary { background: var(--secondary); color: var(--text); border: 1px solid var(--border); }
+        .btn-secondary:hover { background: var(--border); }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-sm { padding: 8px 14px; font-size: 13px; }
+        
+        .container { display: flex; min-height: calc(100vh - 65px); }
+        .sidebar { width: 260px; background: var(--card-bg); padding: 20px; border-right: 1px solid var(--border); }
+        .sidebar h3 { font-size: 13px; color: var(--text-muted); margin-bottom: 14px; text-transform: uppercase; letter-spacing: 1px; }
+        .filter-list { display: flex; flex-direction: column; gap: 6px; }
+        .filter-item { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 10px 14px; border-radius: 8px; font-size: 14px; }
+        .filter-item:hover { background: var(--secondary); }
+        .filter-item.active { background: var(--accent); }
+        .main { flex: 1; padding: 24px; }
+        
+        .models-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        .model-card {
+            background: var(--card-bg); border-radius: 16px; padding: 24px;
+            display: flex; flex-direction: column; align-items: center; gap: 14px;
+            transition: transform 0.3s, box-shadow 0.3s; border: 1px solid var(--border);
+        }
+        .model-card:hover { transform: translateY(-6px); box-shadow: 0 12px 30px rgba(0,0,0,0.4); border-color: var(--accent); }
+        .model-avatar { width: 90px; height: 90px; border-radius: 50%; object-fit: cover; border: 3px solid var(--accent); }
+        .avatar-placeholder { width: 90px; height: 90px; border-radius: 50%; background: linear-gradient(135deg, var(--secondary), var(--border)); display: flex; align-items: center; justify-content: center; font-size: 36px; border: 3px solid var(--border); }
+        .model-name { font-size: 18px; font-weight: 600; }
+        .model-tags { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+        .tag { background: var(--secondary); padding: 5px 12px; border-radius: 20px; font-size: 12px; cursor: pointer; border: 1px solid var(--border); }
+        .tag:hover { background: var(--accent); border-color: var(--accent); }
+        .model-media { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 8px; }
+        .media-thumb { width: 50px; height: 50px; border-radius: 6px; object-fit: cover; cursor: pointer; border: 2px solid var(--border); }
+        .media-thumb:hover { border-color: var(--accent); }
+        .video-icon { width: 50px; height: 50px; border-radius: 6px; display: flex; align-items: center; justify-content: center; background: var(--secondary); border: 2px solid var(--border); font-size: 20px; cursor: pointer; }
+        .video-icon:hover { border-color: var(--accent); }
+        .model-actions { display: flex; gap: 10px; margin-top: 6px; }
+        .empty { text-align: center; padding: 80px 20px; color: var(--text-muted); }
+        .empty-icon { font-size: 64px; opacity: 0.3; }
+        
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 200; padding: 20px; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: var(--card-bg); border-radius: 16px; padding: 28px; width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; border: 1px solid var(--border); }
+        .modal h2 { margin-bottom: 24px; font-size: 22px; }
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: block; margin-bottom: 8px; font-size: 14px; color: var(--text-muted); font-weight: 500; }
+        .form-group input[type="text"], .form-group input[type="file"] { width: 100%; padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg); color: var(--text); font-size: 14px; }
+        .form-group input:focus { outline: none; border-color: var(--accent); }
+        
+        .upload-zone { border: 2px dashed var(--border); border-radius: 12px; padding: 24px; text-align: center; cursor: pointer; transition: all 0.2s; }
+        .upload-zone:hover { border-color: var(--accent); background: rgba(233,69,96,0.05); }
+        .upload-zone input { display: none; }
+        .upload-icon { font-size: 32px; }
+        .upload-text { color: var(--text-muted); font-size: 14px; }
+        .upload-text small { display: block; margin-top: 4px; font-size: 12px; }
+        .file-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+        .file-item { display: flex; align-items: center; gap: 6px; padding: 8px 12px; background: var(--secondary); border-radius: 8px; font-size: 13px; max-width: 200px; }
+        .file-item span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .file-item button { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 16px; }
+        .file-item button:hover { color: var(--accent); }
+        
+        .tags-input-container { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg); min-height: 48px; }
+        .tags-input-container input { border: none; background: transparent; flex: 1; min-width: 100px; }
+        .tags-input-container input:focus { outline: none; border: none; box-shadow: none; }
+        .tag-chip { background: linear-gradient(135deg, var(--accent), var(--accent-hover)); padding: 6px 12px; border-radius: 20px; font-size: 13px; display: flex; align-items: center; gap: 6px; }
+        .tag-chip button { background: none; border: none; color: white; cursor: pointer; font-size: 16px; }
+        
+        .modal-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px; }
+        .section-title { display: flex; justify-content: space-between; margin-bottom: 12px; }
+        .section-title span { font-size: 14px; color: var(--text-muted); font-weight: 500; }
+        .media-viewer { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 300; display: none; align-items: center; justify-content: center; }
+        .media-viewer.active { display: flex; }
+        .media-viewer img, .media-viewer video { max-width: 90%; max-height: 90%; }
+        .media-viewer .close { position: absolute; top: 20px; right: 20px; font-size: 32px; color: white; cursor: pointer; background: none; border: none; }
+        
+        .model-detail { text-align: center; }
+        .model-detail h2 { margin: 16px 0; font-size: 24px; }
+        .detail-avatar img { width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 4px solid var(--accent); }
+        .detail-avatar .avatar-placeholder { width: 150px; height: 150px; border-radius: 50%; background: var(--secondary); display: flex; align-items: center; justify-content: center; font-size: 64px; margin: 0 auto; border: 4px solid var(--border); }
+        .detail-tags { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 20px; }
+        .detail-section { margin: 20px 0; text-align: left; }
+        .detail-section h3 { font-size: 16px; color: var(--text-muted); margin-bottom: 12px; }
+        .detail-gallery { display: flex; flex-wrap: wrap; gap: 10px; }
+        .detail-gallery img { width: 80px; height: 80px; border-radius: 8px; object-fit: cover; cursor: pointer; border: 2px solid var(--border); }
+        .detail-gallery img:hover { border-color: var(--accent); }
+        .detail-gallery .video-thumb { width: 80px; height: 80px; border-radius: 8px; background: var(--secondary); display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; border: 2px solid var(--border); font-size: 24px; }
+        .detail-gallery .video-thumb:hover { border-color: var(--accent); }
+        .detail-gallery .video-thumb span { font-size: 10px; overflow: hidden; text-overflow: ellipsis; max-width: 70px; }
+        
+        @media (max-width: 768px) {
+            header { flex-wrap: wrap; gap: 12px; }
+            .search-box { order: 3; max-width: 100%; width: 100%; }
+            .sidebar { display: none; }
+            .models-grid { grid-template-columns: 1fr; }
+            .modal { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">Model Catalog</div>
+        <div class="search-box"><input type="text" id="search" placeholder="Поиск..."></div>
+        <button class="btn btn-primary" onclick="openModal()">+ Добавить</button>
+    </header>
+
+    <div class="container">
+        <aside class="sidebar"><h3>Теги</h3><div class="filter-list" id="filters"></div></aside>
+        <main class="main"><div class="models-grid" id="modelsGrid"></div></main>
+    </div>
+
+    <div class="modal-overlay" id="modalOverlay"><div class="modal" id="modalContent"></div></div>
+    <div class="modal-overlay" id="confirmOverlay">
+        <div class="modal">
+            <h2>Подтверждение</h2>
+            <p>Удалить модель?</p>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeConfirm()">Отмена</button>
+                <button class="btn btn-danger" id="confirmDelete">Удалить</button>
+            </div>
+        </div>
+    </div>
+    <div class="media-viewer" id="mediaViewer" onclick="closeViewer()">
+        <button class="close" onclick="closeViewer()">×</button>
+        <div id="viewerContent"></div>
+    </div>
+
+    <script>
+        let currentFilter = '', editingId = null, allTags = [];
+        let existingPhotos = [], existingVideos = [], newPhotos = [], newVideos = [];
+
+        const $ = id => document.getElementById(id);
+        
+        async function viewModel(id) {
+            const m = await (await fetch('/api/models/' + id)).json();
+            if (!m) return;
+            
+            $('modalOverlay').classList.add('active');
+            $('modalContent').innerHTML = `
+                <div class="model-detail">
+                    <div class="detail-avatar">
+                        ${m.avatar ? `<img src="/uploads/${m.avatar}">` : '<div class="avatar-placeholder">👤</div>'}
+                    </div>
+                    <h2>${escapeHtml(m.name)}</h2>
+                    <div class="detail-tags">${m.tags.map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('')}</div>
+                    
+                    <div class="detail-section">
+                        <h3>Фото (${(m.photos||[]).length})</h3>
+                        <div class="detail-gallery">
+                            ${(m.photos||[]).map(p => `<img src="/uploads/${p}" onclick="view('/uploads/${p}')">`).join('') || '<p>Нет фото</p>'}
+                        </div>
+                    </div>
+                    
+                    <div class="detail-section">
+                        <h3>Видео (${(m.videos||[]).length})</h3>
+                        <div class="detail-gallery">
+                            ${(m.videos||[]).map(v => `<div class="video-thumb" onclick="viewVideo('/videos/${v}')">▶<span>${escapeHtml(v)}</span></div>`).join('') || '<p>Нет видео</p>'}
+                        </div>
+                    </div>
+                    
+                    <div class="modal-actions">
+                        <button class="btn btn-secondary" onclick="closeModal()">Закрыть</button>
+                        <button class="btn btn-primary" onclick="closeModal();openModal(${JSON.stringify(m)})">Редактировать</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function loadModels() {
+            const params = new URLSearchParams();
+            const search = $('search').value;
+            if (search) params.set('search', search);
+            if (currentFilter) params.set('tag', currentFilter);
+            
+            const res = await fetch('/api/models' + (params ? '?' + params : ''));
+            renderModels(await res.json());
+        }
+
+        async function loadTags() {
+            allTags = await (await fetch('/api/tags')).json();
+            renderFilters();
+        }
+
+        function renderModels(models) {
+            $('modelsGrid').innerHTML = models.length 
+                ? models.map(m => `
+                    <div class="model-card">
+                        <div onclick="viewModel(${m.id})">
+                            ${m.avatar ? `<img src="/uploads/${m.avatar}" class="model-avatar">` : '<div class="avatar-placeholder">👤</div>'}
+                            <div class="model-name">${escapeHtml(m.name)}</div>
+                            <div class="model-tags">${m.tags.map(t => `<span class="tag" onclick="filter('${escapeHtml(t)}');event.stopPropagation()">${escapeHtml(t)}</span>`).join('')}</div>
+                            <div class="model-media">
+                                ${(m.photos||[]).slice(0,3).map(p => `<img src="/uploads/${p}" class="media-thumb" onclick="view('/uploads/${p}');event.stopPropagation()">`).join('')}
+                                ${(m.videos||[]).slice(0,2).map(v => `<div class="video-icon" onclick="viewVideo('/videos/${v}');event.stopPropagation()">▶</div>`).join('')}
+                            </div>
+                        </div>
+                        <div class="model-actions">
+                            <button class="btn btn-secondary btn-sm" onclick='openModal(${JSON.stringify(m)});event.stopPropagation()'>✏️</button>
+                            <button class="btn btn-danger btn-sm" onclick="confirmDelete(${m.id});event.stopPropagation()">🗑️</button>
+                        </div>
+                    </div>
+                `).join('')
+                : '<div class="empty"><div class="empty-icon">👤</div>Нет моделей</div>';
+        }
+
+        function renderFilters() {
+            $('filters').innerHTML = `
+                <label class="filter-item ${!currentFilter?'active':''}" onclick="filter('')">
+                    <input type="radio" name="f" ${!currentFilter?'checked':''}>Все
+                </label>
+                ${allTags.map(t => `
+                    <label class="filter-item ${currentFilter===t?'active':''}" onclick="filter(&quot;${escapeHtml(t)}&quot;)">
+                        <input type="radio" name="f" ${currentFilter===t?'checked':''}>${escapeHtml(t)}
+                    </label>
+                `).join('')}`;
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        }
+        
+        function filter(tag) { currentFilter = tag; loadModels(); }
+
+        function openModal(model = null) {
+            editingId = model?.id || null;
+            existingPhotos = model?.photos || [];
+            existingVideos = model?.videos || [];
+            newPhotos = []; newVideos = [];
+
+            $('modalOverlay').classList.add('active');
+            $('modalContent').innerHTML = `
+                <h2>${model?'Редактирование':'Добавление'} модели</h2>
+                <form onsubmit="save(event)">
+                    <div class="form-group"><label>Имя *</label><input name="name" value="${model?.name||''}" required></div>
+                    
+                    <div class="form-group">
+                        <div class="section-title"><span>Аватар</span></div>
+                        <label class="upload-zone">
+                            <input type="file" id="avatarInput" name="avatar" accept="image/*" onchange="previewAvatar()" style="display:none">
+                            <div class="upload-icon">📷</div><div class="upload-text">Нажмите для фото</div>
+                        </label>
+                        <div class="file-list" id="avatarPreview">${model?.avatar?`<span class="file-item">${model.avatar}</span>`:''}</div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="section-title"><span>Фото</span><small>до 10</small></div>
+                        <label class="upload-zone">
+                            <input type="file" id="photosInput" name="photos" accept="image/*" multiple onchange="previewPhotos()" style="display:none">
+                            <div class="upload-icon">🖼️</div><div class="upload-text">Добавить фото</div>
+                        </label>
+                        <div class="file-list" id="photosPreview"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="section-title"><span>Видео</span><small>до 10</small></div>
+                        <label class="upload-zone">
+                            <input type="file" id="videosInput" name="videos" multiple onchange="previewVideos()" style="display:none">
+                            <div class="upload-icon">🎬</div><div class="upload-text">Добавить видео</div>
+                        </label>
+                        <div class="file-list" id="videosPreview"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Теги</label>
+                        <div class="tags-input-container" id="tagsContainer">
+                            ${(model?.tags||[]).map(t => `<span class="tag-chip" data-tag="${escapeHtml(t)}">${escapeHtml(t)}<button onclick="this.parentElement.remove()">×</button></span>`).join('')}
+                            <input id="tagInput" placeholder="Enter для тега">
+                        </div>
+                    </div>
+
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal()">Отмена</button>
+                        <button type="submit" class="btn btn-primary">Сохранить</button>
+                    </div>
+                </form>
+            `;
+            updateFileLists();
+            
+            $('tagInput').onkeydown = e => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const v = e.target.value.trim().toLowerCase();
+                    if (v && !$('[data-tag="'+v+'"]')) {
+                        const c = document.createElement('span');
+                        c.className = 'tag-chip'; c.setAttribute('data-tag',v);
+                        c.innerHTML = v + '<button onclick="this.parentElement.remove()">×</button>';
+                        $('tagsContainer').insertBefore(c, e.target);
+                        e.target.value = '';
+                    }
+                }
+            };
+
+            }
+
+        function previewAvatar() {
+            $('avatarPreview').innerHTML = $('avatarInput').files[0] 
+                ? `<span class="file-item">${$('avatarInput').files[0].name}</span>` : '';
+        }
+
+        function previewPhotos() {
+            newPhotos = [...$('photosInput').files].map(f=>f.name); 
+            updateFileLists();
+        }
+
+        function previewVideos() {
+            newVideos = [...$('videosInput').files].map(f=>f.name); 
+            updateFileLists();
+        }
+
+        function updateFileLists() {
+            const render = (arr, type) => arr.map((f, i) => 
+                `<span class="file-item" title="${f}"><span>${f}</span><button onclick="removeFile('${type}',${i})">×</button><input name="existing_${type}" value="${f}"></span>`
+            ).join('');
+            $('photosPreview').innerHTML = render(existingPhotos.concat(newPhotos), 'photos');
+            $('videosPreview').innerHTML = render(existingVideos.concat(newVideos), 'videos');
+        }
+
+        function removeFile(type, index) {
+            if (type === 'photos') {
+                if (index < existingPhotos.length) {
+                    existingPhotos.splice(index, 1);
+                } else {
+                    newPhotos.splice(index - existingPhotos.length, 1);
+                }
+            } else {
+                if (index < existingVideos.length) {
+                    existingVideos.splice(index, 1);
+                } else {
+                    newVideos.splice(index - existingVideos.length, 1);
+                }
+            }
+            updateFileLists();
+        }
+
+        function closeModal() {
+            $('modalOverlay').classList.remove('active');
+            editingId = null;
+        }
+
+        function view(src) {
+            $('viewerContent').innerHTML = `<img src="${src}">`;
+            $('mediaViewer').classList.add('active');
+        }
+
+        function viewVideo(src) {
+            $('viewerContent').innerHTML = `<video controls autoplay><source src="${src}"></video>`;
+            $('mediaViewer').classList.add('active');
+        }
+
+        function closeViewer() {
+            $('mediaViewer').classList.remove('active');
+            $('viewerContent').innerHTML = '';
+        }
+
+        async function save(e) {
+            e.preventDefault();
+            const form = new FormData(e.target);
+            
+            const tagElems = $('tagsContainer').querySelectorAll('[data-tag]');
+            const tags = Array.from(tagElems).map(c => c.getAttribute('data-tag'));
+            form.set('tags', JSON.stringify(tags));
+
+            const url = editingId ? `/api/models/${editingId}` : '/api/models';
+            await fetch(url, { method: editingId?'PUT':'POST', body: form });
+            closeModal();
+            loadModels(); loadTags();
+        }
+
+        function confirmDelete(id) {
+            $('confirmOverlay').classList.add('active');
+            $('confirmDelete').onclick = async () => {
+                await fetch(`/api/models/${id}`, { method: 'DELETE' });
+                closeConfirm();
+                loadModels(); loadTags();
+            };
+        }
+
+        function closeConfirm() { $('confirmOverlay').classList.remove('active'); }
+
+        $('search').oninput = debounce(loadModels, 300);
+        function debounce(fn, w) { let t; return (...a) => { clearTimeout(t); t = setTimeout(()=>fn(...a), w); }; }
+
+        loadModels(); loadTags();
+    </script>
+</body>
+</html>
