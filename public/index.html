@@ -240,7 +240,7 @@
                     
                     <div class="modal-actions">
                         <button class="btn btn-secondary" onclick="closeModal()">Закрыть</button>
-                        <button class="btn btn-primary" onclick="closeModal();openModal(${JSON.stringify(m)})">Редактировать</button>
+                        <button class="btn btn-primary" onclick="closeModal();openById(${m.id})">Редактировать</button>
                     </div>
                 </div>
             `;
@@ -275,7 +275,7 @@
                             </div>
                         </div>
                         <div class="model-actions">
-                            <button class="btn btn-secondary btn-sm" onclick='openModal(${JSON.stringify(m)});event.stopPropagation()'>✏️</button>
+                            <button class="btn btn-secondary btn-sm" onclick="openById(${m.id});event.stopPropagation()">✏️</button>
                             <button class="btn btn-danger btn-sm" onclick="confirmDelete(${m.id});event.stopPropagation()">🗑️</button>
                         </div>
                     </div>
@@ -300,6 +300,11 @@
         }
         
         function filter(tag) { currentFilter = tag; loadModels(); }
+
+        async function openById(id) {
+            const m = await (await fetch('/api/models/' + id)).json();
+            openModal(m);
+        }
 
         function openModal(model = null) {
             editingId = model?.id || null;
