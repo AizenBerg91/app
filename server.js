@@ -65,6 +65,23 @@ function parseJson(str, defaultVal = []) {
     }
 }
 
+function escapeSqlLike(str) {
+    if (!str) return '';
+    return String(str).replace(/[%_]/g, m => m === '%' ? '\\%' : '\\_');
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+const ALLOWED_IMAGES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+const ALLOWED_VIDEOS = ['video/mp4', 'video/webm', 'video/quicktime'];
+
+function validateFile(file, allowedTypes) {
+    return file && allowedTypes.includes(file.mimetype);
+}
+
 function deleteFiles(files, dir) {
     if (!Array.isArray(files)) return;
     files.forEach(f => {
@@ -90,12 +107,14 @@ app.get('/api/models', (req, res) => {
     if (search || tag) {
         const conditions = [];
         if (search) {
-            conditions.push('(name LIKE ? OR tags LIKE ?)');
-            params.push(`%${search}%`, `%${search}%`);
+            const safeSearch = `%${escapeSqlLike(search)}%`;
+            conditions.push('(name LIKE ? ESCAPE "\\" OR tags LIKE ? ESCAPE "\\")');
+            params.push(safeSearch, safeSearch);
         }
         if (tag) {
-            conditions.push('tags LIKE ?');
-            params.push(`%"${tag}"%`);
+            const safeTag = `%"${escapeSqlLike(tag)}"%`;
+            conditions.push('tags LIKE ? ESCAPE "\\"');
+            params.push(safeTag);
         }
         query += ' WHERE ' + conditions.join(' AND ');
     }
@@ -105,6 +124,7 @@ app.get('/api/models', (req, res) => {
     
     res.json(models.map(m => ({
         ...m,
+        name: escapeHtml(m.name),
         photos: parseJson(m.photos),
         videos: parseJson(m.videos),
         tags: parseJson(m.tags)
@@ -117,6 +137,7 @@ app.get('/api/models/:id', (req, res) => {
 
     res.json({
         ...model,
+        name: escapeHtml(model.name),
         photos: parseJson(model.photos),
         videos: parseJson(model.videos),
         tags: parseJson(model.tags)
@@ -136,10 +157,19 @@ app.post('/api/models', upload.fields([
     if (name.length > 255) {
         return res.status(400).json({ error: 'Name too long (max 255 chars)' });
     }
-    
-    const avatar = req.files?.['avatar']?.[0]?.filename || null;
-    const photos = req.files?.['photos']?.map(f => f.filename) || [];
-    const videos = req.files?.['videos']?.map(f => f.filename) || [];
+
+    const avatarFile = req.files?.['avatar']?.[0];
+    if (avatarFile && !validateFile(avatarFile, ALLOWED_IMAGES)) {
+        return res.status(400).json({ error: 'Invalid avatar file type' });
+    }
+    const avatar = avatarFile?.filename || null;
+
+    const photosFiles = req.files?.['photos']?.filter(f => validateFile(f, ALLOWED_IMAGES)) || [];
+    const photos = photosFiles.map(f => f.filename);
+
+    const videosFiles = req.files?.['videos']?.filter(f => validateFile(f, ALLOWED_VIDEOS)) || [];
+    const videos = videosFiles.map(f => f.filename);
+
     const tagsArray = tags ? parseJson(tags) : [];
 
     const result = db.prepare(`
@@ -149,7 +179,7 @@ app.post('/api/models', upload.fields([
 
     res.json({ 
         id: result.lastInsertRowid, 
-        name: name.trim(), 
+        name: escapeHtml(name.trim()), 
         avatar, 
         tags: tagsArray, 
         videos,
@@ -177,15 +207,22 @@ app.put('/api/models/:id', upload.fields([
     const oldVideos = parseJson(model.videos);
 
     let avatar = existing_avatar || model.avatar;
-    if (req.files?.['avatar']?.[0]) {
-        avatar = req.files['avatar'][0].filename;
+    const avatarFile = req.files?.['avatar']?.[0];
+    if (avatarFile) {
+        if (!validateFile(avatarFile, ALLOWED_IMAGES)) {
+            return res.status(400).json({ error: 'Invalid avatar file type' });
+        }
+        avatar = avatarFile.filename;
         if (model.avatar) {
             deleteFiles([model.avatar], UPLOADS_DIR);
         }
     }
 
-    const newPhotos = req.files?.['photos']?.map(f => f.filename) || [];
-    const newVideos = req.files?.['videos']?.map(f => f.filename) || [];
+    const photosFiles = req.files?.['photos']?.filter(f => validateFile(f, ALLOWED_IMAGES)) || [];
+    const newPhotos = photosFiles.map(f => f.filename);
+
+    const videosFiles = req.files?.['videos']?.filter(f => validateFile(f, ALLOWED_VIDEOS)) || [];
+    const newVideos = videosFiles.map(f => f.filename);
     
     const photosArray = newPhotos.length > 0 ? newPhotos : (existingPhotos.length > 0 ? existingPhotos : oldPhotos);
     const videosArray = newVideos.length > 0 ? newVideos : (existingVideos.length > 0 ? existingVideos : oldVideos);
@@ -198,7 +235,7 @@ app.put('/api/models/:id', upload.fields([
 
     res.json({ 
         id: req.params.id, 
-        name: name ? name.trim() : model.name, 
+        name: escapeHtml(name ? name.trim() : model.name), 
         avatar, 
         tags: tagsArray, 
         videos: videosArray, 
@@ -224,7 +261,7 @@ app.delete('/api/models/:id', (req, res) => {
 app.get('/api/tags', (req, res) => {
     const models = db.prepare('SELECT tags FROM models').all();
     const allTags = new Set();
-    models.forEach(m => parseJson(m.tags).forEach(t => allTags.add(t)));
+    models.forEach(m => parseJson(m.tags).forEach(t => allTags.add(escapeHtml(t))));
     res.json(Array.from(allTags).sort());
 });
 
