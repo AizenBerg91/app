@@ -35,6 +35,10 @@ db.exec(`
         photos TEXT DEFAULT '[]',
         videos TEXT DEFAULT '[]',
         tags TEXT DEFAULT '[]',
+        description TEXT DEFAULT '',
+        social_links TEXT DEFAULT '[]',
+        category TEXT DEFAULT '',
+        views INTEGER DEFAULT 0,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
@@ -123,7 +127,7 @@ app.get('/api/models', (req, res) => {
 
     const total = db.prepare('SELECT COUNT(*) as count FROM models' + (conditions.length ? ' WHERE ' + conditions.join(' AND ') : '')).get().count;
     const pageNum = parseInt(page) || 1;
-    const limitNum = Math.min(parseInt(limit) || 20, 100);
+    const limitNum = parseInt(limit) || 100;
     const offset = (pageNum - 1) * limitNum;
     query += ` LIMIT ${limitNum} OFFSET ${offset}`;
 
@@ -139,6 +143,11 @@ app.get('/api/models', (req, res) => {
         data: models.map(m => ({
             ...m,
             name: escapeHtml(m.name),
+            description: m.description || '',
+            social_links: parseJson(m.social_links),
+            category: m.category || '',
+            views: m.views || 0,
+            created_at: m.created_at,
             photos: parseJson(m.photos).map(p => ({ name: p, size: getFileSize(UPLOADS_DIR, p) })),
             videos: parseJson(m.videos).map(v => ({ name: v, size: getFileSize(VIDEOS_DIR, v) })),
             tags: parseJson(m.tags)
@@ -154,11 +163,26 @@ app.get('/api/models/:id', (req, res) => {
     const model = db.prepare('SELECT * FROM models WHERE id = ?').get(req.params.id);
     if (!model) return res.status(404).json({ error: 'Model not found' });
 
+    const getFileSize = (dir, filename) => {
+        if (!filename) return 0;
+        const fp = path.join(dir, filename);
+        return fs.existsSync(fp) ? fs.statSync(fp).size : 0;
+    };
+
+    const photos = parseJson(model.photos);
+    const videos = parseJson(model.videos);
+
     res.json({
         ...model,
         name: escapeHtml(model.name),
-        photos: parseJson(model.photos),
-        videos: parseJson(model.videos),
+        avatar: model.avatar,
+        description: model.description || '',
+        social_links: parseJson(model.social_links),
+        category: model.category || '',
+        views: model.views || 0,
+        created_at: model.created_at,
+        photos: photos.map(p => ({ name: p, size: getFileSize(UPLOADS_DIR, p) })),
+        videos: videos.map(v => ({ name: v, size: getFileSize(VIDEOS_DIR, v) })),
         tags: parseJson(model.tags)
     });
 });
@@ -190,11 +214,14 @@ app.post('/api/models', upload.fields([
     const videos = videosFiles.map(f => f.filename);
 
     const tagsArray = tags ? parseJson(tags) : [];
+    const description = String(req.body.description || '');
+    const socialLinks = req.body.social_links ? parseJson(req.body.social_links) : [];
+    const category = String(req.body.category || '');
 
     const result = db.prepare(`
-        INSERT INTO models (name, avatar, tags, videos, photos)
-        VALUES (?, ?, ?, ?, ?)
-    `).run(name.trim(), avatar, JSON.stringify(tagsArray), JSON.stringify(videos), JSON.stringify(photos));
+        INSERT INTO models (name, avatar, tags, videos, photos, description, social_links, category)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(name.trim(), avatar, JSON.stringify(tagsArray), JSON.stringify(videos), JSON.stringify(photos), description, JSON.stringify(socialLinks), category);
 
     res.json({ 
         id: result.lastInsertRowid, 
@@ -202,7 +229,12 @@ app.post('/api/models', upload.fields([
         avatar, 
         tags: tagsArray, 
         videos,
-        photos 
+        photos,
+        description,
+        social_links: socialLinks,
+        category,
+        views: 0,
+        created_at: new Date().toISOString()
     });
 });
 
@@ -246,11 +278,14 @@ app.put('/api/models/:id', upload.fields([
     const photosArray = newPhotos.length > 0 ? newPhotos : (existingPhotos.length > 0 ? existingPhotos : oldPhotos);
     const videosArray = newVideos.length > 0 ? newVideos : (existingVideos.length > 0 ? existingVideos : oldVideos);
     const tagsArray = tags ? parseJson(tags) : parseJson(model.tags);
+    const description = req.body.description !== undefined ? req.body.description : (model.description || '');
+    const socialLinks = req.body.social_links ? parseJson(req.body.social_links) : parseJson(model.social_links);
+    const category = req.body.category !== undefined ? req.body.category : (model.category || '');
 
     db.prepare(`
-        UPDATE models SET name = ?, avatar = ?, tags = ?, videos = ?, photos = ?, updated_at = CURRENT_TIMESTAMP
+        UPDATE models SET name = ?, avatar = ?, tags = ?, videos = ?, photos = ?, description = ?, social_links = ?, category = ?, updated_at = CURRENT_TIMESTAMP
         WHERE id = ?
-    `).run(name ? name.trim() : model.name, avatar, JSON.stringify(tagsArray), JSON.stringify(videosArray), JSON.stringify(photosArray), req.params.id);
+    `).run(name ? name.trim() : model.name, avatar, JSON.stringify(tagsArray), JSON.stringify(videosArray), JSON.stringify(photosArray), description, JSON.stringify(socialLinks), category, req.params.id);
 
     res.json({ 
         id: req.params.id, 
@@ -258,7 +293,12 @@ app.put('/api/models/:id', upload.fields([
         avatar, 
         tags: tagsArray, 
         videos: videosArray, 
-        photos: photosArray 
+        photos: photosArray,
+        description,
+        social_links: socialLinks,
+        category,
+        views: model.views || 0,
+        created_at: model.created_at
     });
 });
 
