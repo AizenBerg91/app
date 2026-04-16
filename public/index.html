@@ -84,21 +84,38 @@
         .tag { background: rgba(255,255,255,0.08); padding: 5px 12px; border-radius: var(--radius-lg); font-size: 12px; cursor: pointer; border: 1px solid var(--border); backdrop-filter: blur(4px); }
         .tag:hover { background: var(--accent); border-color: var(--accent); box-shadow: var(--shadow-md); }
         .model-media { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 10px; position: relative; z-index: 1; }
-        .media-thumb { width: 70px; height: 70px; border-radius: var(--radius-md); object-fit: cover; cursor: pointer; border: 2px solid transparent; transition: all 0.2s; }
+        .media-thumb { width: 100px; height: 100px; border-radius: var(--radius-md); object-fit: cover; cursor: pointer; border: 2px solid transparent; transition: all 0.2s; }
         .media-thumb:hover { border-color: var(--accent); transform: scale(1.08); box-shadow: var(--shadow-md); }
-        .video-icon { width: 70px; height: 70px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; background: var(--secondary); border: 2px solid var(--border); font-size: 24px; cursor: pointer; transition: all 0.2s; }
+        .media-thumb::-webkit-media-controls { display: none; }
+        .media-thumb::-webkit-media-controls-play-button { display: none; }
+        .video-icon { width: 100px; height: 100px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; background: var(--secondary); border: 2px solid var(--border); font-size: 32px; cursor: pointer; transition: all 0.2s; }
         .video-icon:hover { border-color: var(--accent); transform: scale(1.08); box-shadow: var(--shadow-md); }
+        .fullscreen-viewer { position: fixed; inset: 0; background: #000; z-index: 500; display: none; align-items: center; justify-content: center; flex-direction: column; cursor: pointer; }
+        .fullscreen-viewer.active { display: flex; }
+        .fullscreen-viewer img, .fullscreen-viewer video { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .fullscreen-close { position: absolute; top: 20px; right: 20px; width: 50px; height: 50px; font-size: 32px; color: #fff; cursor: pointer; background: rgba(255,255,255,0.15); border: none; border-radius: 50%; }
+        .fullscreen-nav { position: absolute; top: 50%; transform: translateY(-50%); width: 60px; height: 60px; background: rgba(255,255,255,0.15); border: none; border-radius: 50%; color: #fff; font-size: 28px; cursor: pointer; }
+        .fullscreen-nav.prev { left: 20px; }
+        .fullscreen-nav.next { right: 20px; }
+        .fullscreen-counter { position: absolute; bottom: 20px; color: #fff; font-size: 14px; background: rgba(0,0,0,0.5); padding: 8px 16px; border-radius: 20px; }
         .model-actions { display: flex; gap: 10px; margin-top: 8px; position: relative; z-index: 1; }
         .model-actions .btn { box-shadow: var(--shadow-sm); }
         .model-actions .btn:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
         .empty { text-align: center; padding: 80px 20px; color: var(--text-muted); }
         .empty-icon { font-size: 64px; opacity: 0.3; }
         
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 200; padding: 20px; backdrop-filter: blur(8px); }
+        .modal-overlay { position: fixed; inset: 0; background: var(--bg); display: none; align-items: center; justify-content: center; z-index: 200; padding: 0; }
         .modal-overlay.active { display: flex; }
-        .modal { background: linear-gradient(145deg, var(--card-bg), var(--card-bg)); border-radius: var(--radius-xl); padding: 32px; width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; border: 1px solid var(--border); box-shadow: var(--shadow-xl); }
+        .modal { background: var(--card-bg); border-radius: 0; padding: 0; width: 100%; max-width: 100%; max-height: 100vh; overflow-y: auto; border: none; box-shadow: none; }
+        .modal::-webkit-scrollbar { width: 8px; }
+        .modal::-webkit-scrollbar-track { background: var(--bg); }
+        .modal::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+        .modal::-webkit-scrollbar-thumb:hover { background: var(--accent); }
         .modal h2 { margin-bottom: 28px; font-size: 26px; font-weight: 700; }
+        .model-detail { padding: 24px; }
         .model-detail h2 { margin: 20px 0; font-size: 28px; font-weight: 700; }
+        .close-modal-btn { position: fixed; top: 20px; right: 20px; width: 44px; height: 44px; font-size: 28px; background: var(--secondary); border: 1px solid var(--border); border-radius: 50%; cursor: pointer; z-index: 10; transition: all 0.2s; }
+        .close-modal-btn:hover { background: var(--accent); color: #fff; }
         .form-group { margin-bottom: 20px; }
         .form-group label { display: block; margin-bottom: 10px; font-size: 14px; color: var(--text-muted); font-weight: 500; }
         .form-group input[type="text"], .form-group input[type="file"] { width: 100%; padding: 14px 16px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg); color: var(--text); font-size: 14px; transition: all 0.2s; }
@@ -137,19 +154,23 @@
         .media-viewer .close:hover { background: var(--accent); }
         .media-viewer-counter { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); color: white; font-size: 14px; background: rgba(0,0,0,0.5); padding: 8px 16px; border-radius: var(--radius-lg); }
         
-        .model-detail { text-align: center; }
-        .model-detail h2 { margin: 16px 0; font-size: 24px; }
-        .detail-avatar img { width: 200px; height: 200px; border-radius: 50%; object-fit: cover; border: 5px solid var(--accent); box-shadow: var(--shadow-lg); }
-        .detail-avatar .avatar-placeholder { width: 200px; height: 200px; border-radius: 50%; background: var(--secondary); display: flex; align-items: center; justify-content: center; font-size: 80px; margin: 0 auto; border: 5px solid var(--border); box-shadow: var(--shadow-lg); }
-        .detail-tags { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 24px; }
-        .detail-section { margin: 24px 0; text-align: left; }
-        .detail-section h3 { font-size: 18px; color: var(--text-muted); margin-bottom: 14px; }
-        .detail-gallery { display: flex; flex-wrap: wrap; gap: 14px; }
-        .detail-gallery img { width: 120px; height: 120px; border-radius: var(--radius-md); object-fit: cover; cursor: pointer; border: 3px solid var(--border); }
-        .detail-gallery img:hover { border-color: var(--accent); }
-        .detail-gallery .video-thumb { width: 120px; height: 120px; border-radius: var(--radius-md); background: var(--secondary); display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; border: 3px solid var(--border); font-size: 32px; }
-        .detail-gallery .video-thumb:hover { border-color: var(--accent); }
-        .detail-gallery .video-thumb span { font-size: 12px; overflow: hidden; text-overflow: ellipsis; max-width: 100px; }
+        .model-detail { text-align: center; max-width: 800px; margin: 0 auto; }
+        .model-detail h2 { margin: 16px 0; font-size: 28px; font-weight: 700; }
+        .detail-header { position: relative; padding-top: 24px; margin-bottom: 24px; text-align: center; }
+        .detail-header::after { content: ''; position: absolute; bottom: -24px; left: 50%; transform: translateX(-50%); width: 60px; height: 3px; background: var(--accent); border-radius: 2px; }
+        .detail-avatar { width: 180px; height: 180px; margin: 0 auto 24px; border-radius: 50%; overflow: hidden; border: 4px solid var(--accent); box-shadow: var(--shadow-lg); cursor: pointer; }
+        .detail-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .detail-avatar .avatar-placeholder { width: 100%; height: 100%; background: var(--secondary); display: flex; align-items: center; justify-content: center; font-size: 72px; }
+        .detail-tags { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 32px; }
+        .detail-section { margin: 32px 0; text-align: left; background: var(--bg); border-radius: var(--radius-lg); padding: 24px; border: 1px solid var(--border); }
+        .detail-section h3 { font-size: 16px; color: var(--text-muted); margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+        .detail-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+        .detail-gallery img { width: 100%; aspect-ratio: 1; border-radius: var(--radius-md); object-fit: cover; cursor: pointer; border: 2px solid transparent; transition: all 0.2s; }
+        .detail-gallery img:hover { border-color: var(--accent); transform: scale(1.02); }
+        .detail-gallery video { width: 100%; aspect-ratio: 1; border-radius: var(--radius-md); object-fit: cover; cursor: pointer; border: 2px solid var(--border); }
+        .detail-gallery .video-thumb { aspect-ratio: 1; border-radius: var(--radius-md); background: var(--secondary); display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; border: 2px solid transparent; font-size: 36px; transition: all 0.2s; }
+        .detail-gallery .video-thumb:hover { border-color: var(--accent); transform: scale(1.02); }
+        .detail-gallery .video-thumb span { font-size: 12px; overflow: hidden; text-overflow: ellipsis; max-width: 120px; padding: 0 8px; }
         
         @media (max-width: 768px) {
             header { flex-wrap: wrap; gap: 12px; }
@@ -191,6 +212,13 @@
         <button class="media-viewer-nav next" onclick="navNext()">❯</button>
         <div class="media-viewer-counter" id="viewerCounter"></div>
     </div>
+    <div class="fullscreen-viewer" id="fullscreenViewer">
+        <button class="fullscreen-close" onclick="closeFullscreen()">×</button>
+        <button class="fullscreen-nav prev" onclick="event.stopPropagation();fsPrev()">❮</button>
+        <button class="fullscreen-nav next" onclick="event.stopPropagation();fsNext()">❯</button>
+        <div class="fullscreen-content" id="fullscreenContent"></div>
+        <div class="fullscreen-counter" id="fullscreenCounter"></div>
+    </div>
 
     <script>
         let currentFilter = '', editingId = null, allTags = [];
@@ -217,28 +245,35 @@
             
             $('modalOverlay').classList.add('active');
             $('modalContent').innerHTML = `
+                <button class="close-modal-btn" onclick="closeModal()">×</button>
                 <div class="model-detail">
-                    <div class="detail-avatar">
-                        ${m.avatar ? `<img src="/uploads/${m.avatar}">` : '<div class="avatar-placeholder">👤</div>'}
+                    <div class="detail-header">
+                        <div class="detail-avatar" onclick="event.stopPropagation();openFullscreen('/uploads/${m.avatar}')">
+                            ${m.avatar ? `<img src="/uploads/${m.avatar}">` : '<div class="avatar-placeholder">👤</div>'}
+                        </div>
+                        <h2>${escapeHtml(m.name)}</h2>
+                        <div class="detail-tags">${m.tags.map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('')}</div>
                     </div>
-                    <h2>${escapeHtml(m.name)}</h2>
-                    <div class="detail-tags">${m.tags.map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('')}</div>
                     
+                    ${(m.photos||[]).length > 0 ? `
                     <div class="detail-section">
-                        <h3>Фото (${(m.photos||[]).length})</h3>
+                        <h3>Фото ${(m.photos||[]).length}</h3>
                         <div class="detail-gallery">
-                            ${(m.photos||[]).map(p => `<img src="/uploads/${p}" onclick="event.stopPropagation()">`).join('') || '<p>Нет фото</p>'}
+                            ${(m.photos||[]).map((p, i) => `<img src="/uploads/${p}" onclick="event.stopPropagation();openFullscreen('/uploads/${p}', ${JSON.stringify((m.photos||[]).map(x => '/uploads/' + x))})">`).join('')}
                         </div>
                     </div>
+                    ` : ''}
                     
+                    ${(m.videos||[]).length > 0 ? `
                     <div class="detail-section">
-                        <h3>Видео (${(m.videos||[]).length})</h3>
+                        <h3>Видео ${(m.videos||[]).length}</h3>
                         <div class="detail-gallery">
-                            ${(m.videos||[]).map(v => `<div class="video-thumb" onclick="event.stopPropagation()">▶<span>${escapeHtml(v)}</span></div>`).join('') || '<p>Нет видео</p>'}
+                            ${(m.videos||[]).map(v => `<video src="/videos/${v}" controls playsinline></video>`).join('')}
                         </div>
                     </div>
+                    ` : ''}
                     
-                    <div class="modal-actions">
+                    <div class="modal-actions" style="justify-content: center; padding-bottom: 24px;">
                         <button class="btn btn-secondary" onclick="closeModal()">Закрыть</button>
                         <button class="btn btn-primary" onclick="closeModal();openById(${m.id})">Редактировать</button>
                     </div>
@@ -263,15 +298,19 @@
 
         function renderModels(models) {
             $('modelsGrid').innerHTML = models.length 
-                ? models.map(m => `
+                ? models.map(m => {
+                    const photos = m.photos || [];
+                    const videos = m.videos || [];
+                    const allMedia = [...photos.map(p => '/uploads/' + p), ...videos.map(v => '/videos/' + v)];
+                    return `
                     <div class="model-card">
                         <div onclick="viewModel(${m.id})">
                             ${m.avatar ? `<img src="/uploads/${m.avatar}" class="model-avatar">` : '<div class="avatar-placeholder">👤</div>'}
                             <div class="model-name">${escapeHtml(m.name)}</div>
                             <div class="model-tags">${m.tags.map(t => `<span class="tag" onclick="filter('${escapeHtml(t)}');event.stopPropagation()">${escapeHtml(t)}</span>`).join('')}</div>
                             <div class="model-media">
-                                ${(m.photos||[]).slice(0,3).map(p => `<img src="/uploads/${p}" class="media-thumb" onclick="openViewer('/uploads/${p}');event.stopPropagation()">`).join('')}
-                                ${(m.videos||[]).slice(0,2).map(v => `<div class="video-icon" onclick="openViewer('/videos/${v}', true);event.stopPropagation()">▶</div>`).join('')}
+                                ${photos.slice(0,4).map((p, i) => `<img src="/uploads/${p}" class="media-thumb" onclick="event.stopPropagation();openFullscreen('/uploads/${p}', ${JSON.stringify(photos.map(x => '/uploads/' + x))})">`).join('')}
+                                ${videos.slice(0,3).map((v, i) => `<video src="/videos/${v}" class="media-thumb" controls playsinline onclick="event.stopPropagation()">`).join('')}
                             </div>
                         </div>
                         <div class="model-actions">
@@ -279,7 +318,7 @@
                             <button class="btn btn-danger btn-sm" onclick="confirmDelete(${m.id});event.stopPropagation()">🗑️</button>
                         </div>
                     </div>
-                `).join('')
+                `}).join('')
                 : '<div class="empty"><div class="empty-icon">👤</div>Нет моделей</div>';
         }
 
@@ -463,11 +502,55 @@
             mediaList = [];
         }
 
+        let fsList = [], fsIndex = 0;
+        function openFullscreen(src, list) {
+            fsList = list || [src];
+            fsIndex = fsList.indexOf(src);
+            showFullscreen();
+            $('fullscreenViewer').classList.add('active');
+        }
+
+        function showFullscreen() {
+            const src = fsList[fsIndex];
+            const isVideo = src.match(/\.(mp4|webm|mov|avi)$/i);
+            $('fullscreenContent').innerHTML = isVideo 
+                ? `<video controls autoplay><source src="${src}"></video>` 
+                : `<img src="${src}">`;
+            $('fullscreenCounter').textContent = fsList.length > 1 ? `${fsIndex + 1} / ${fsList.length}` : '';
+        }
+
+        function fsPrev() {
+            fsIndex = (fsIndex - 1 + fsList.length) % fsList.length;
+            showFullscreen();
+        }
+
+        function fsNext() {
+            fsIndex = (fsIndex + 1) % fsList.length;
+            showFullscreen();
+        }
+
+        function closeFullscreen() {
+            $('fullscreenViewer').classList.remove('active');
+            $('fullscreenContent').innerHTML = '';
+            fsList = [];
+        }
+
         document.addEventListener('keydown', e => {
+            if ($('fullscreenViewer').classList.contains('active')) {
+                if (e.key === 'ArrowLeft') fsPrev();
+                if (e.key === 'ArrowRight') fsNext();
+                if (e.key === 'Escape') closeFullscreen();
+                return;
+            }
             if (!$('mediaViewer').classList.contains('active')) return;
             if (e.key === 'ArrowLeft') navPrev();
             if (e.key === 'ArrowRight') navNext();
             if (e.key === 'Escape') closeViewer();
+        });
+
+        $('fullscreenViewer').addEventListener('click', e => {
+            if (e.target.classList.contains('fullscreen-nav')) return;
+            closeFullscreen();
         });
 
         async function save(e) {
