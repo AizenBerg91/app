@@ -10,6 +10,12 @@ services:
       - videos:/app/videos
       - dbdata:/app/data
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:4444/api/models"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
 
 volumes:
   uploads:

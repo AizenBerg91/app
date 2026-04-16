@@ -6,10 +6,11 @@ const path = require('path');
 const fs = require('fs');
 
 const app = express();
-const PORT = 4444;
+const PORT = process.env.PORT || 4444;
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(express.static('public'));
 app.use('/uploads', express.static('uploads'));
 app.use('/videos', express.static('videos'));
@@ -65,13 +66,17 @@ function parseJson(str, defaultVal = []) {
 }
 
 function deleteFiles(files, dir) {
+    if (!Array.isArray(files)) return;
     files.forEach(f => {
+        if (!f) return;
         const filepath = path.join(dir, f);
-        if (fs.existsSync(filepath)) fs.unlinkSync(filepath);
+        if (fs.existsSync(filepath)) {
+            fs.unlinkSync(filepath);
+        }
     });
 }
 
-function getFormArray(key) {
+function getFormArray(req, key) {
     const vals = req?.body?.[key];
     if (!vals) return [];
     return Array.isArray(vals) ? vals : [vals];
@@ -125,6 +130,13 @@ app.post('/api/models', upload.fields([
 ]), (req, res) => {
     const { name, tags } = req.body;
     
+    if (!name || typeof name !== 'string' || name.trim().length === 0) {
+        return res.status(400).json({ error: 'Name is required' });
+    }
+    if (name.length > 255) {
+        return res.status(400).json({ error: 'Name too long (max 255 chars)' });
+    }
+    
     const avatar = req.files?.['avatar']?.[0]?.filename || null;
     const photos = req.files?.['photos']?.map(f => f.filename) || [];
     const videos = req.files?.['videos']?.map(f => f.filename) || [];
@@ -133,11 +145,11 @@ app.post('/api/models', upload.fields([
     const result = db.prepare(`
         INSERT INTO models (name, avatar, tags, videos, photos)
         VALUES (?, ?, ?, ?, ?)
-    `).run(name, avatar, JSON.stringify(tagsArray), JSON.stringify(videos), JSON.stringify(photos));
+    `).run(name.trim(), avatar, JSON.stringify(tagsArray), JSON.stringify(videos), JSON.stringify(photos));
 
     res.json({ 
         id: result.lastInsertRowid, 
-        name, 
+        name: name.trim(), 
         avatar, 
         tags: tagsArray, 
         videos,
@@ -145,23 +157,21 @@ app.post('/api/models', upload.fields([
     });
 });
 
-function getFormArray(key) {
-    const vals = req.body[key];
-    if (!vals) return [];
-    return Array.isArray(vals) ? vals : [vals];
-}
-
 app.put('/api/models/:id', upload.fields([
     { name: 'avatar', maxCount: 1 },
     { name: 'photos', maxCount: 10 },
     { name: 'videos', maxCount: 10 }
 ]), (req, res) => {
     const { name, tags, existing_avatar } = req.body;
-    const existingPhotos = getFormArray('existing_photos');
-    const existingVideos = getFormArray('existing_videos');
+    const existingPhotos = getFormArray(req, 'existing_photos');
+    const existingVideos = getFormArray(req, 'existing_videos');
 
     const model = db.prepare('SELECT * FROM models WHERE id = ?').get(req.params.id);
     if (!model) return res.status(404).json({ error: 'Model not found' });
+
+    if (name !== undefined && (typeof name !== 'string' || name.length > 255)) {
+        return res.status(400).json({ error: 'Invalid name (max 255 chars)' });
+    }
 
     const oldPhotos = parseJson(model.photos);
     const oldVideos = parseJson(model.videos);
@@ -184,11 +194,11 @@ app.put('/api/models/:id', upload.fields([
     db.prepare(`
         UPDATE models SET name = ?, avatar = ?, tags = ?, videos = ?, photos = ?, updated_at = CURRENT_TIMESTAMP
         WHERE id = ?
-    `).run(name || model.name, avatar, JSON.stringify(tagsArray), JSON.stringify(videosArray), JSON.stringify(photosArray), req.params.id);
+    `).run(name ? name.trim() : model.name, avatar, JSON.stringify(tagsArray), JSON.stringify(videosArray), JSON.stringify(photosArray), req.params.id);
 
     res.json({ 
         id: req.params.id, 
-        name: name || model.name, 
+        name: name ? name.trim() : model.name, 
         avatar, 
         tags: tagsArray, 
         videos: videosArray, 
@@ -216,6 +226,17 @@ app.get('/api/tags', (req, res) => {
     const allTags = new Set();
     models.forEach(m => parseJson(m.tags).forEach(t => allTags.add(t)));
     res.json(Array.from(allTags).sort());
+});
+
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    if (err instanceof SyntaxError && err.status === 400) {
+        return res.status(400).json({ error: 'Invalid JSON' });
+    }
+    if (err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(413).json({ error: 'File too large' });
+    }
+    res.status(500).json({ error: 'Internal server error' });
 });
 
 app.listen(PORT, () => {
