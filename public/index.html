@@ -85,11 +85,23 @@
         .model-tags { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; position: relative; z-index: 1; }
         .tag { background: rgba(255,255,255,0.08); padding: 5px 12px; border-radius: var(--radius-lg); font-size: 12px; cursor: pointer; border: 1px solid var(--border); backdrop-filter: blur(4px); }
         .tag:hover { background: var(--accent); border-color: var(--accent); box-shadow: var(--shadow-md); }
-        .model-media { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; margin-top: 10px; position: relative; z-index: 1; width: 100%; }
+        .model-media { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; margin-top: 10px; position: relative; z-index: 1; width: 100%; cursor: pointer; }
         .media-thumb { width: 80px; height: 80px; border-radius: var(--radius-sm); object-fit: cover; cursor: pointer; border: 2px solid transparent; transition: all 0.2s; position: relative; }
         .media-thumb:hover { border-color: var(--accent); transform: scale(1.05); }
         .video-icon { width: 100px; height: 100px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; background: var(--secondary); border: 2px solid var(--border); font-size: 32px; cursor: pointer; transition: all 0.2s; }
         .media-icon { width: 80px; height: 80px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; background: var(--secondary); border: 2px solid var(--border); font-size: 24px; cursor: pointer; }
+        .media-count { position: absolute; bottom: 4px; right: 4px; background: rgba(0,0,0,0.7); padding: 2px 8px; border-radius: 10px; font-size: 12px; }
+        .model-stats { display: flex; gap: 12px; font-size: 12px; color: var(--text-muted); margin-top: 8px; position: relative; z-index: 1; }
+        .model-stats span { display: flex; align-items: center; gap: 4px; }
+        .model-more { position: absolute; bottom: 4px; right: 4px; background: rgba(0,0,0,0.7); padding: 4px 8px; border-radius: 10px; font-size: 12px; }
+        .video-size { position: absolute; top: 4px; left: 4px; background: rgba(0,0,0,0.7); padding: 2px 4px; border-radius: 4px; font-size: 10px; }
+        .pagination { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 16px; padding: 16px; }
+        .pagination button { background: var(--secondary); border: 1px solid var(--border); color: var(--text); padding: 8px 12px; border-radius: var(--radius-md); cursor: pointer; }
+        .pagination button:hover { background: var(--accent); }
+        .pagination span { padding: 8px 12px; }
+        .sort-bar { display: flex; gap: 8px; justify-content: flex-end; margin-bottom: 16px; }
+        .sort-bar button { background: var(--secondary); border: 1px solid var(--border); color: var(--text); padding: 6px 12px; border-radius: var(--radius-md); cursor: pointer; font-size: 12px; }
+        .sort-bar button.active { background: var(--accent); border-color: var(--accent); }
         .fullscreen-viewer { position: fixed; inset: 0; background: #000; z-index: 500; display: none; align-items: center; justify-content: center; flex-direction: column; cursor: pointer; }
         .fullscreen-viewer.active { display: flex; }
         .fullscreen-viewer img, .fullscreen-viewer video { max-width: 100%; max-height: 100%; object-fit: contain; }
@@ -186,6 +198,11 @@
         <div class="logo">Model Catalog</div>
         <button class="theme-toggle" onclick="toggleTheme()" title="Сменить тему">🌙</button>
         <div class="search-box"><input type="text" id="search" placeholder="Поиск..."></div>
+        <div class="sort-bar">
+            <button onclick="setSort('')" id="sort-default">↓</button>
+            <button onclick="setSort('name')" id="sort-name">A-Z</button>
+            <button onclick="setSort('created_at')" id="sort-date">📅</button>
+        </div>
         <button class="btn btn-primary" onclick="openModal()">+ Добавить</button>
     </header>
 
@@ -286,33 +303,51 @@
             const search = $('search').value;
             if (search) params.set('search', search);
             if (currentFilter) params.set('tag', currentFilter);
+            if (currentSort) params.set('sort', currentSort);
+            if (currentPage > 1) params.set('page', currentPage);
             
             const res = await fetch('/api/models' + (params ? '?' + params : ''));
-            renderModels(await res.json());
+            const r = await res.json();
+            renderModels(r.data || r);
+            renderPagination(r);
         }
+
+        let currentSort = '', currentPage = 1, totalPages = 1;
 
         async function loadTags() {
             allTags = await (await fetch('/api/tags')).json();
             renderFilters();
         }
 
+        function formatSize(bytes) {
+            if (!bytes) return '0 МБ';
+            const mb = bytes / (1024 * 1024);
+            return mb.toFixed(1) + ' МБ';
+        }
+
         function renderModels(models) {
-            const getMediaList = (photos, videos) => JSON.stringify([...photos.map(p => '/uploads/' + p), ...videos.map(v => '/videos/' + v)]);
             $('modelsGrid').innerHTML = models.length 
                 ? models.map(m => {
                     const photos = m.photos || [];
                     const videos = m.videos || [];
-                    const allMedia = photos.map((p, i) => `<img src="/uploads/${p}" class="media-thumb" onclick="event.stopPropagation();openFullscreen('/uploads/${p}', ${getMediaList(photos, videos)})">`).join('') + 
-                                   videos.map((v, i) => `<div class="media-icon" onclick="event.stopPropagation();openFullscreen('/videos/${v}', ${getMediaList(photos, videos)})">▶</div>`).join('');
+                    const totalPhotos = photos.length;
+                    const totalVideos = videos.length;
+                    const totalMedia = totalPhotos + totalVideos;
                     return `
                     <div class="model-card">
                         <div onclick="viewModel(${m.id})">
                             ${m.avatar ? `<img src="/uploads/${m.avatar}" class="model-avatar">` : '<div class="avatar-placeholder">👤</div>'}
                             <div class="model-name">${escapeHtml(m.name)}</div>
                             <div class="model-tags">${m.tags.map(t => `<span class="tag" onclick="filter('${escapeHtml(t)}');event.stopPropagation()">${escapeHtml(t)}</span>`).join('')}</div>
-                            ${(photos.length + videos.length) > 0 ? `
+                            ${totalMedia > 0 ? `
                             <div class="model-media">
-                                ${allMedia}
+                                ${photos.slice(0,12).map((p, i) => `<img src="/uploads/${p.name}" class="media-thumb" onclick="event.stopPropagation();viewMedia(${m.id}, ${i})">`).join('')}
+                                ${videos.slice(0,6).map((v, i) => `<div class="media-icon" onclick="event.stopPropagation();viewMedia(${m.id}, ${totalPhotos + i})"><span class="video-size">${formatSize(v.size)}</span>▶</div>`).join('')}
+                                ${totalMedia > 18 ? `<div class="media-more">+${totalMedia - 18}</div>` : ''}
+                            </div>
+                            <div class="model-stats">
+                                <span>📷 ${totalPhotos}</span>
+                                <span>🎬 ${totalVideos}</span>
                             </div>
                             ` : ''}
                         </div>
@@ -324,6 +359,20 @@
                 `}).join('')
                 : '<div class="empty"><div class="empty-icon">👤</div>Нет моделей</div>';
         }
+
+        function renderPagination(r) {
+            if (!r || r.pages <= 1) return;
+            totalPages = r.pages;
+            let html = `<div class="pagination">`;
+            if (r.page > 1) html += `<button onclick="setPage(1)">«</button> <button onclick="setPage(${r.page - 1})">‹</button>`;
+            html += `<span>${r.page} / ${r.pages}</span>`;
+            if (r.page < r.pages) html += `<button onclick="setPage(${r.page + 1})">›</button> <button onclick="setPage(${r.pages})">»</button>`;
+            html += `</div>`;
+            $('modelsGrid').insertAdjacentHTML('afterend', html);
+        }
+
+        function setPage(p) { currentPage = p; loadModels(); }
+        function setSort(s) { currentSort = s; currentPage = 1; loadModels(); }
 
         function renderFilters() {
             $('filters').innerHTML = `
@@ -538,6 +587,14 @@
             fsList = [];
         }
 
+        async function viewMedia(id, index) {
+            const m = await (await fetch('/api/models/' + id)).json();
+            const photos = m.photos || [];
+            const videos = m.videos || [];
+            const list = [...photos.map(p => '/uploads/' + p), ...videos.map(v => '/videos/' + v)];
+            openFullscreen(list[index], list);
+        }
+
         document.addEventListener('keydown', e => {
             if ($('fullscreenViewer').classList.contains('active')) {
                 if (e.key === 'ArrowLeft') fsPrev();
@@ -585,6 +642,14 @@
         function debounce(fn, w) { let t; return (...a) => { clearTimeout(t); t = setTimeout(()=>fn(...a), w); }; }
 
         loadModels(); loadTags();
+
+        async function viewMedia(id, index) {
+            const m = await (await fetch('/api/models/' + id)).json();
+            const photos = m.photos || [];
+            const videos = m.videos || [];
+            const list = [...photos.map(p => '/uploads/' + p), ...videos.map(v => '/videos/' + v)];
+            openFullscreen(list[index], list);
+        }
     </script>
 </body>
 </html>

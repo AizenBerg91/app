@@ -100,35 +100,54 @@ function getFormArray(req, key) {
 }
 
 app.get('/api/models', (req, res) => {
-    const { search, tag } = req.query;
+    const { search, tag, sort, page, limit } = req.query;
     let query = 'SELECT * FROM models';
     const params = [];
+    const conditions = [];
 
-    if (search || tag) {
-        const conditions = [];
-        if (search) {
-            const safeSearch = `%${escapeSqlLike(search)}%`;
-            conditions.push('(name LIKE ? ESCAPE "\\" OR tags LIKE ? ESCAPE "\\")');
-            params.push(safeSearch, safeSearch);
-        }
-        if (tag) {
-            const safeTag = `%"${escapeSqlLike(tag)}"%`;
-            conditions.push('tags LIKE ? ESCAPE "\\"');
-            params.push(safeTag);
-        }
-        query += ' WHERE ' + conditions.join(' AND ');
+    if (search) {
+        const safeSearch = `%${escapeSqlLike(search)}%`;
+        conditions.push('(name LIKE ? ESCAPE "\\" OR tags LIKE ? ESCAPE "\\")');
+        params.push(safeSearch, safeSearch);
     }
+    if (tag) {
+        const safeTag = `%"${escapeSqlLike(tag)}"%`;
+        conditions.push('tags LIKE ? ESCAPE "\\"');
+        params.push(safeTag);
+    }
+    if (conditions.length) query += ' WHERE ' + conditions.join(' AND ');
 
-    query += ' ORDER BY created_at DESC';
+    const sortField = sort === 'name' ? 'name' : (sort === 'created_at' ? 'created_at' : 'created_at');
+    const sortOrder = sort === 'name' ? 'ASC' : 'DESC';
+    query += ` ORDER BY ${sortField} ${sortOrder}`;
+
+    const total = db.prepare('SELECT COUNT(*) as count FROM models' + (conditions.length ? ' WHERE ' + conditions.join(' AND ') : '')).get().count;
+    const pageNum = parseInt(page) || 1;
+    const limitNum = Math.min(parseInt(limit) || 20, 100);
+    const offset = (pageNum - 1) * limitNum;
+    query += ` LIMIT ${limitNum} OFFSET ${offset}`;
+
     const models = db.prepare(query).all(...params);
     
-    res.json(models.map(m => ({
-        ...m,
-        name: escapeHtml(m.name),
-        photos: parseJson(m.photos),
-        videos: parseJson(m.videos),
-        tags: parseJson(m.tags)
-    })));
+    const getFileSize = (dir, filename) => {
+        if (!filename) return 0;
+        const fp = path.join(dir, filename);
+        return fs.existsSync(fp) ? fs.statSync(fp).size : 0;
+    };
+
+    res.json({
+        data: models.map(m => ({
+            ...m,
+            name: escapeHtml(m.name),
+            photos: parseJson(m.photos).map(p => ({ name: p, size: getFileSize(UPLOADS_DIR, p) })),
+            videos: parseJson(m.videos).map(v => ({ name: v, size: getFileSize(VIDEOS_DIR, v) })),
+            tags: parseJson(m.tags)
+        })),
+        total,
+        page: pageNum,
+        limit: limitNum,
+        pages: Math.ceil(total / limitNum)
+    });
 });
 
 app.get('/api/models/:id', (req, res) => {
