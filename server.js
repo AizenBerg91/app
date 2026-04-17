@@ -44,6 +44,10 @@ db.exec(`
     )
 `);
 
+["description", "social_links", "category"].forEach(col => {
+    try { db.exec(`ALTER TABLE models ADD COLUMN ${col} TEXT DEFAULT '';`); } catch {}
+});
+
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         const dest = file.fieldname === 'videos' ? VIDEOS_DIR : UPLOADS_DIR;
