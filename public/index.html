@@ -55,15 +55,11 @@
         .btn-sm { padding: 8px 14px; font-size: 13px; }
         
         .container { display: flex; min-height: calc(100vh - 65px); }
-        .sidebar { width: 260px; background: var(--card-bg); padding: 20px; border-right: 1px solid var(--border); }
-        .sidebar h3 { font-size: 13px; color: var(--text-muted); margin-bottom: 14px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
-        .filter-list { display: flex; flex-direction: column; gap: 6px; }
-        .filter-item { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 10px 14px; border-radius: var(--radius-md); font-size: 14px; transition: all 0.2s; }
-.filter-item:hover { background: var(--secondary); }
-        .filter-item.active { background: var(--accent); }
+        
+
         .main { flex: 1; padding: 24px; }
         
-.models-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px; }
+.models-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; }
         .model-card {
             background: var(--card-bg);
             border-radius: var(--radius-xl); padding: 0;
@@ -74,26 +70,25 @@
         .model-card:hover { transform: translateY(-6px); box-shadow: 0 12px 40px rgba(233,69,96,0.25); border-color: var(--accent); }
         
         
-        .card-info { padding: 20px; text-align: center; }
-        .card-header { display: flex; flex-direction: column; text-align: center; gap: 12px; }
+        .card-info { padding: 24px; text-align: center; }
+        .card-header { display: flex; flex-direction: column; align-items: center; gap: 14px; }
         .card-avatar { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid var(--accent); box-shadow: var(--shadow-md); }
         .card-avatar-placeholder { width: 120px; height: 120px; border-radius: 50%; background: var(--secondary); display: flex; align-items: center; justify-content: center; border: 4px solid var(--border); font-size: 48px; }
-        .card-title { }
-        .card-name { font-size: 18px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.3px; }
-        .card-category { font-size: 11px; color: var(--accent); font-weight: 600; text-transform: uppercase; margin-top: 4px; letter-spacing: 0.5px; }
-        .card-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-        .card-tag { background: rgba(233,69,96,0.15); color: var(--accent); padding: 4px 10px; border-radius: 14px; font-size: 12px; font-weight: 500; border: 1px solid rgba(233,69,96,0.3); }
-        .card-stats { display: flex; gap: 16px; margin-top: 14px; font-size: 13px; color: var(--text-muted); }
-        .card-stats span { display: flex; align-items: center; gap: 6px; background: var(--bg); padding: 6px 12px; border-radius: 20px; }
-        .card-actions { display: flex; gap: 10px; padding: 16px 20px; border-top: 1px solid var(--border); background: var(--bg); }
-        .card-actions .btn { flex: 1; justify-content: center; }
-        .model-media { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; margin-top: 10px; position: relative; z-index: 1; width: 100%; cursor: pointer; }
-        .media-thumb { width: 80px; height: 80px; border-radius: var(--radius-sm); object-fit: cover; cursor: pointer; border: 2px solid transparent; transition: all 0.2s; position: relative; }
+        .card-title { width: 100%; }
+        .card-name { font-size: 18px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .card-category { font-size: 12px; color: var(--accent); font-weight: 600; text-transform: uppercase; margin-top: 6px; letter-spacing: 0.5px; }
+        
+        .card-stats { display: flex; gap: 14px; justify-content: center; margin-top: 14px; flex-wrap: wrap; }
+        .card-stats span { display: flex; align-items: center; gap: 6px; background: var(--bg); padding: 6px 14px; border-radius: 16px; font-size: 13px; }
+        .card-actions { display: flex; gap: 12px; padding: 16px 20px; border-top: 1px solid var(--border); background: var(--bg); }
+        .card-actions .btn { flex: 1; justify-content: center; padding: 12px 16px; font-size: 14px; }
+        .model-media { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 12px; position: relative; z-index: 1; width: 100%; cursor: pointer; }
+        .media-thumb { width: 72px; height: 72px; border-radius: var(--radius-sm); object-fit: cover; cursor: pointer; border: 2px solid transparent; transition: all 0.2s; position: relative; }
         .media-thumb:hover { border-color: var(--accent); transform: scale(1.05); }
-        .video-icon { width: 80px; height: 80px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; background: var(--secondary); border: 2px solid var(--border); font-size: 24px; cursor: pointer; }
+        .video-icon { width: 72px; height: 72px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; background: var(--secondary); border: 2px solid var(--border); font-size: 24px; cursor: pointer; }
         .media-count { position: absolute; bottom: 4px; right: 4px; background: rgba(0,0,0,0.7); padding: 2px 8px; border-radius: 10px; font-size: 12px; }
-        .model-stats { display: flex; gap: 12px; font-size: 12px; color: var(--text-muted); margin-top: 8px; position: relative; z-index: 1; }
-        .model-stats span { display: flex; align-items: center; gap: 4px; }
+.model-stats { display: flex; gap: 12px; font-size: 13px; color: var(--text-muted); margin-top: 10px; justify-content: center; position: relative; z-index: 1; }
+        .model-stats span { display: flex; align-items: center; gap: 5px; }
         
         .video-size { position: absolute; top: 4px; left: 4px; background: rgba(0,0,0,0.7); padding: 2px 4px; border-radius: 4px; font-size: 10px; }
         .pagination { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 16px; padding: 16px; }
@@ -134,6 +129,15 @@
         .form-group input[type="text"], .form-group input[type="file"] { width: 100%; padding: 14px 16px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg); color: var(--text); font-size: 14px; transition: all 0.2s; }
         .form-group input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(233,69,96,0.2); }
         
+        .model-form .form-row { margin-bottom: 16px; }
+        .model-form .form-row.cols-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .model-form .form-group input, .model-form .form-group textarea { width: 100%; padding: 12px 14px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); color: var(--text); font-size: 14px; transition: all 0.2s; }
+        .model-form .form-group input::placeholder { color: var(--text-muted); opacity: 0.6; }
+        .model-form .upload-zone.small { padding: 16px; }
+        .model-form .upload-zone.small .upload-icon { font-size: 24px; }
+        .model-form .upload-zone.small .upload-text { font-size: 12px; }
+        .model-form textarea { resize: vertical; min-height: 80px; }
+        
         .upload-zone { border: 2px dashed var(--border); border-radius: var(--radius-md); padding: 24px; text-align: center; cursor: pointer; transition: all 0.2s; }
         .upload-zone:hover { border-color: var(--accent); background: rgba(233,69,96,0.05); }
         .upload-zone input { display: none; }
@@ -146,15 +150,14 @@
         .file-item button { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 16px; }
         .file-item button:hover { color: var(--accent); }
         
-        .tags-input-container { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg); min-height: 48px; }
-        .tags-input-container input { border: none; background: transparent; flex: 1; min-width: 100px; }
-        .tags-input-container input:focus { outline: none; border: none; box-shadow: none; }
-        .tag-chip { background: linear-gradient(135deg, var(--accent), var(--accent-hover)); padding: 6px 12px; border-radius: var(--radius-lg); font-size: 13px; display: flex; align-items: center; gap: 6px; }
-        .tag-chip button { background: none; border: none; color: white; cursor: pointer; font-size: 16px; }
+        
+        
         
         .modal-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px; }
+        .model-form .modal-actions { margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border); }
         .section-title { display: flex; justify-content: space-between; margin-bottom: 12px; }
         .section-title span { font-size: 14px; color: var(--text-muted); font-weight: 500; }
+        .section-title small { font-size: 12px; color: var(--text-muted); font-weight: 400; }
         .media-viewer { position: fixed; inset: 0; background: #000; z-index: 300; display: none; align-items: center; justify-content: center; flex-direction: column; }
         .media-viewer.active { display: flex; }
         .media-viewer-content { max-width: 100%; max-height: 100%; display: flex; align-items: center; justify-content: center; }
@@ -171,7 +174,6 @@
         .model-detail h2 { margin: 16px 0; font-size: 28px; font-weight: 700; }
         .detail-header { position: relative; padding-top: 24px; margin-bottom: 24px; text-align: center; }
         .detail-avatar { width: 250px; height: 250px; margin: 0 auto 24px; border-radius: 50%; overflow: hidden; border: 4px solid var(--accent); box-shadow: var(--shadow-lg); cursor: pointer; }
-        .detail-tags { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 32px; }
         .detail-section { margin: 32px 0; text-align: left; background: var(--bg); border-radius: var(--radius-lg); padding: 24px; border: 1px solid var(--border); }
         .detail-section h3 { font-size: 16px; color: var(--text-muted); margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
         .detail-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
@@ -180,27 +182,22 @@
         
         .detail-view { display: flex; flex-direction: column; background: var(--bg); }
         .detail-content { flex: 1; overflow-y: auto; padding: 40px; max-width: 1200px; margin: 0 auto; width: 100%; }
-        .detail-info { text-align: center; margin-bottom: 24px; }
-        .detail-avatar { width: 160px; height: 160px; border-radius: 50%; object-fit: cover; border: 3px solid var(--accent); margin: 0 auto 16px; box-shadow: var(--shadow-md); }
-        .detail-info h2 { font-size: 24px; font-weight: 700; margin-bottom: 12px; letter-spacing: -0.3px; }
-        .detail-tags { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 16px; }
-        .detail-tags .tag { background: rgba(233,69,96,0.15); color: var(--accent); padding: 4px 12px; border-radius: 14px; font-size: 12px; font-weight: 500; border: 1px solid rgba(233,69,96,0.3); }
-        .detail-category { display: inline-block; background: var(--accent); color: white; padding: 4px 12px; border-radius: 14px; font-size: 11px; font-weight: 600; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .detail-description { color: var(--text); font-size: 14px; line-height: 1.6; margin: 16px 0; padding: 16px; background: var(--bg); border-radius: var(--radius-md); border-left: 3px solid var(--accent); }
-        .detail-meta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-        .detail-meta span { display: flex; align-items: center; gap: 6px; background: var(--card-bg); padding: 8px 14px; border-radius: 20px; font-size: 13px; border: 1px solid var(--border); }
-        .detail-social { display: flex; gap: 8px; justify-content: center; margin-top: 14px; flex-wrap: wrap; }
-        .social-link { display: flex; align-items: center; gap: 6px; padding: 6px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: 20px; color: var(--text); text-decoration: none; font-size: 12px; transition: all 0.2s; }
-        .social-link:hover { background: var(--accent); border-color: var(--accent); color: white; }
-        .detail-section { margin: 24px 0; background: var(--card-bg); border-radius: var(--radius-lg); padding: 20px; border: 1px solid var(--border); }
-        .detail-section h3 { font-size: 14px; color: var(--text-muted); margin-bottom: 16px; text-transform: uppercase; font-weight: 600; letter-spacing: 1px; }
-        .detail-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
-        .detail-gallery img { width: 100%; aspect-ratio: 1; border-radius: var(--radius-md); object-fit: cover; cursor: pointer; transition: all 0.2s; }
-        .detail-gallery img:hover { transform: scale(1.03); box-shadow: var(--shadow-sm); }
-        .detail-gallery.videos { grid-template-columns: 1fr; gap: 10px; }
-        .detail-gallery video { width: 100%; border-radius: var(--radius-sm); background: #000; }
-        .detail-actions { display: flex; gap: 12px; justify-content: center; padding: 20px; border-top: 1px solid var(--border); background: var(--card-bg); }
-        .detail-actions .btn { padding: 10px 20px; font-size: 14px; }
+        .detail-info { text-align: center; margin-bottom: 40px; }
+        .detail-avatar { width: 320px; height: 320px; border-radius: 50%; object-fit: cover; border: 5px solid var(--accent); margin: 0 auto 24px; box-shadow: var(--shadow-lg); }
+        .detail-info h2 { font-size: 42px; font-weight: 800; margin-bottom: 20px; letter-spacing: -0.5px; }
+        .detail-category { display: inline-block; background: var(--accent); color: white; padding: 8px 20px; border-radius: 20px; font-size: 15px; font-weight: 600; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        .detail-meta { display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; }
+        .detail-meta span { display: flex; align-items: center; gap: 8px; background: var(--card-bg); padding: 14px 28px; border-radius: 30px; font-size: 18px; border: 1px solid var(--border); }
+        .detail-section { margin: 48px 0; background: var(--card-bg); border-radius: var(--radius-xl); padding: 32px; border: 1px solid var(--border); }
+        .detail-section h3 { font-size: 20px; color: var(--text-muted); margin-bottom: 24px; text-transform: uppercase; font-weight: 600; letter-spacing: 1px; }
+        .detail-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
+        .detail-gallery img { width: 100%; aspect-ratio: 1; border-radius: var(--radius-lg); object-fit: cover; cursor: pointer; transition: all 0.2s; }
+        .detail-gallery img:hover { transform: scale(1.05); box-shadow: var(--shadow-md); }
+        .detail-gallery.videos { grid-template-columns: 1fr; gap: 12px; }
+        .detail-gallery video { width: 100%; border-radius: var(--radius-md); background: #000; }
+        .detail-actions { display: flex; gap: 20px; justify-content: center; padding: 32px; border-top: 1px solid var(--border); background: var(--card-bg); }
+        .detail-actions .btn { padding: 16px 32px; font-size: 18px; }
         
         @media (max-width: 768px) {
             header { flex-wrap: wrap; gap: 12px; }
@@ -225,7 +222,7 @@
     </header>
 
     <div class="container">
-        <aside class="sidebar"><h3>Теги</h3><div class="filter-list" id="filters"></div></aside>
+        
         <main class="main"><div class="models-grid" id="modelsGrid"></div></main>
     </div>
 
@@ -261,9 +258,7 @@
         };
 
         function initApp() {
-            window.currentFilter = '';
             window.editingId = null;
-            window.allTags = [];
             window.existingPhotos = [];
             window.existingVideos = [];
             window.newPhotos = [];
@@ -290,7 +285,6 @@
             window.viewMedia = viewMedia;
             
             loadModels();
-            loadTags();
         }
         
         function toggleTheme() {
@@ -325,18 +319,12 @@
                             ${avatarSrc ? `<img src="${avatarSrc}" class="detail-avatar" onclick="event.stopPropagation();openFullscreen('${avatarSrc}')">` : ''}
                             <h2>${escapeHtml(m.name)}</h2>
                             ${m.category ? `<div class="detail-category">${escapeHtml(m.category)}</div>` : ''}
-                            <div class="detail-tags">${(m.tags || []).map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('')}</div>
-                            ${m.description ? `<div class="detail-description">${escapeHtml(m.description)}</div>` : ''}
+                            
                             <div class="detail-meta">
                                 <span>📷 ${photos.length} фото</span>
                                 <span>🎬 ${videos.length} видео</span>
                                 <span>💾 ${formatSize(totalSize)}</span>
                             </div>
-                            ${m.social_links && m.social_links.length > 0 ? `
-                            <div class="detail-social">
-                                ${m.social_links.map(s => `<a href="${s.url}" target="_blank" class="social-link">${s.label}</a>`).join('')}
-                            </div>
-                            ` : ''}
                         </div>
                         
                         ${photos.length > 0 ? `
@@ -370,7 +358,6 @@
             const params = new URLSearchParams();
             const search = $('search').value;
             if (search) params.set('search', search);
-            if (currentFilter) params.set('tag', currentFilter);
             if (currentSort) params.set('sort', currentSort);
             if (currentPage > 1) params.set('page', currentPage);
             
@@ -381,11 +368,6 @@
         }
 
         let currentSort = '', currentPage = 1, totalPages = 1;
-
-        async function loadTags() {
-            allTags = await (await fetch('/api/tags')).json();
-            renderFilters();
-        }
 
         function formatSize(bytes) {
             if (!bytes) return '0 МБ';
@@ -410,7 +392,6 @@
                                 <div class="card-title">
                                     <div class="card-name">${escapeHtml(m.name)}</div>
                                     ${m.category ? `<div class="card-category">${escapeHtml(m.category)}</div>` : ''}
-                                    <div class="card-tags">${(m.tags || []).slice(0,3).map(t => `<span class="card-tag">${escapeHtml(t)}</span>`).join('')}</div>
                                 </div>
                             </div>
                             ${totalMedia > 0 ? `
@@ -444,23 +425,11 @@
         function setPage(p) { currentPage = p; loadModels(); }
         function setSort(s) { currentSort = s; currentPage = 1; loadModels(); }
 
-        function renderFilters() {
-            $('filters').innerHTML = `
-                <label class="filter-item ${!currentFilter?'active':''}" onclick="filter('')">
-                    <input type="radio" name="f" ${!currentFilter?'checked':''}>Все
-                </label>
-                ${allTags.map(t => `
-                    <label class="filter-item ${currentFilter===t?'active':''}" onclick="filter(&quot;${escapeHtml(t)}&quot;)">
-                        <input type="radio" name="f" ${currentFilter===t?'checked':''}>${escapeHtml(t)}
-                    </label>
-                `).join('')}`;
-        }
-
         function escapeHtml(str) {
             return str.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
         }
         
-        function filter(tag) { currentFilter = tag; loadModels(); }
+        
 
         async function openById(id) {
             const m = await (await fetch('/api/models/' + id)).json();
@@ -475,83 +444,54 @@
 
             $('modalOverlay').classList.add('active');
             $('modalContent').innerHTML = `
-                <h2>${model?'Редактирование':'Добавление'} модели</h2>
-                <form onsubmit="save(event)">
-                    <div class="form-group"><label>Имя *</label><input name="name" value="${model?.name||''}" required></div>
+                <h2>${model?'✏️ Редактирование':'➕ Добавить модель'}</h2>
+                <form onsubmit="save(event)" class="model-form">
+                    <div class="form-row">
+                        <div class="form-group"><label>Имя *</label><input name="name" value="${model?.name||''}" required placeholder="Введите имя"></div>
+                    </div>
                     
-                    <div class="form-group">
-                        <div class="section-title"><span>Аватар</span></div>
-                        <label class="upload-zone">
-                            <input type="file" id="avatarInput" name="avatar" accept="image/*" onchange="previewAvatar()" style="display:none">
-                            <div class="upload-icon">📷</div><div class="upload-text">Нажмите для фото</div>
-                        </label>
-                        <div class="file-list" id="avatarPreview">${model?.avatar?`<span class="file-item">${model.avatar}</span>`:''}</div>
+                    <div class="form-row cols-2">
+                        <div class="form-group">
+                            <label>Аватар</label>
+                            <label class="upload-zone small">
+                                <input type="file" id="avatarInput" name="avatar" accept="image/*" onchange="previewAvatar()" style="display:none">
+                                <div class="upload-icon">📷</div><div class="upload-text">Выбрать</div>
+                            </label>
+                            <div class="file-list" id="avatarPreview">${model?.avatar?`<span class="file-item">${model.avatar}</span>`:''}</div>
+                        </div>
+                        <div class="form-group">
+                            <label>Категория</label>
+                            <input type="text" name="category" value="${model?.category||''}" placeholder="Голосование, Актриса...">
+                        </div>
                     </div>
 
-                    <div class="form-group">
-                        <div class="section-title"><span>Фото</span><small>до 10</small></div>
-                        <label class="upload-zone">
-                            <input type="file" id="photosInput" name="photos" accept="image/*" multiple onchange="previewPhotos()" style="display:none">
-                            <div class="upload-icon">🖼️</div><div class="upload-text">Добавить фото</div>
-                        </label>
-                        <div class="file-list" id="photosPreview"></div>
-                    </div>
-
-                    <div class="form-group">
-                        <div class="section-title"><span>Видео</span><small>до 10</small></div>
-                        <label class="upload-zone">
-                            <input type="file" id="videosInput" name="videos" multiple onchange="previewVideos()" style="display:none">
-                            <div class="upload-icon">🎬</div><div class="upload-text">Добавить видео</div>
-                        </label>
-                        <div class="file-list" id="videosPreview"></div>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Описание</label>
-                        <textarea name="description" rows="3" style="width:100%;padding:14px;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--bg);color:var(--text);font-size:14px;resize:vertical;">${model?.description||''}</textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Категория</label>
-                        <input type="text" name="category" value="${model?.category||''}" placeholder="Например: Голосование, Актриса..." style="width:100%;padding:14px;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--bg);color:var(--text);font-size:14px;">
-                    </div>
-
-                    <div class="form-group">
-                        <label>Соц. сети (JSON)</label>
-                        <input type="text" name="social_links" value='${JSON.stringify(model?.social_links || []).replace(/'/g, "&apos;")}' placeholder='[{"label":"Telegram","url":"..."}]' style="width:100%;padding:14px;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--bg);color:var(--text);font-size:14px;">
-                    </div>
-
-                    <div class="form-group">
-                        <label>Теги</label>
-                        <div class="tags-input-container" id="tagsContainer">
-                            ${(model?.tags||[]).map(t => `<span class="tag-chip" data-tag="${escapeHtml(t)}">${escapeHtml(t)}<button onclick="this.parentElement.remove()">×</button></span>`).join('')}
-                            <input id="tagInput" placeholder="Enter для тега">
+                    <div class="form-row cols-2">
+                        <div class="form-group">
+                            <div class="section-title"><span>Фото</span><small>до 10</small></div>
+                            <label class="upload-zone small">
+                                <input type="file" id="photosInput" name="photos" accept="image/*" multiple onchange="previewPhotos()" style="display:none">
+                                <div class="upload-icon">🖼️</div><div class="upload-text">Добавить</div>
+                            </label>
+                            <div class="file-list" id="photosPreview"></div>
+                        </div>
+                        <div class="form-group">
+                            <div class="section-title"><span>Видео</span><small>до 10</small></div>
+                            <label class="upload-zone small">
+                                <input type="file" id="videosInput" name="videos" multiple onchange="previewVideos()" style="display:none">
+                                <div class="upload-icon">🎬</div><div class="upload-text">Добавить</div>
+                            </label>
+                            <div class="file-list" id="videosPreview"></div>
                         </div>
                     </div>
 
                     <div class="modal-actions">
-                        <button type="button" class="btn btn-secondary" onclick="closeModal()">Отмена</button>
-                        <button type="submit" class="btn btn-primary">Сохранить</button>
+                        <button type="button" class="btn btn-secondary" onclick="closeModal()">✖ Отмена</button>
+                        <button type="submit" class="btn btn-primary">💾 Сохранить</button>
                     </div>
                 </form>
-            `;
+`;
             updateFileLists();
-            
-            $('tagInput').onkeydown = e => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    const v = e.target.value.trim().toLowerCase();
-                    if (v && !$('[data-tag="'+v+'"]')) {
-                        const c = document.createElement('span');
-                        c.className = 'tag-chip'; c.setAttribute('data-tag',v);
-                        c.innerHTML = v + '<button onclick="this.parentElement.remove()">×</button>';
-                        $('tagsContainer').insertBefore(c, e.target);
-                        e.target.value = '';
-                    }
-                }
-            };
-
-            }
+        }
 
         function previewAvatar() {
             $('avatarPreview').innerHTML = $('avatarInput').files[0] 
@@ -712,14 +652,12 @@
             e.preventDefault();
             const form = new FormData(e.target);
             
-            const tagElems = $('tagsContainer').querySelectorAll('[data-tag]');
-            const tags = Array.from(tagElems).map(c => c.getAttribute('data-tag'));
-            form.set('tags', JSON.stringify(tags));
+            form.set('tags', '[]');
 
             const url = window.editingId ? `/api/models/${window.editingId}` : '/api/models';
             await fetch(url, { method: window.editingId ? 'PUT' : 'POST', body: form });
             closeModal();
-            loadModels(); loadTags();
+            loadModels();
         }
 
         function confirmDelete(id) {
@@ -727,7 +665,7 @@
             $('confirmDelete').onclick = async () => {
                 await fetch(`/api/models/${id}`, { method: 'DELETE' });
                 closeConfirm();
-                loadModels(); loadTags();
+                loadModels();
             };
         }
 
