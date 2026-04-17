@@ -274,7 +274,6 @@
             window.confirmDelete = confirmDelete;
             window.closeConfirm = closeConfirm;
             window.save = save;
-            window.filter = filter;
             window.setPage = setPage;
             window.setSort = setSort;
             window.viewModel = viewModel;
@@ -368,6 +367,7 @@
         }
 
         let currentSort = '', currentPage = 1, totalPages = 1;
+        let mediaList = [], mediaIndex = 0;
 
         function formatSize(bytes) {
             if (!bytes) return '0 МБ';
