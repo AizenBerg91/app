@@ -75,7 +75,7 @@ function parseJson(str, defaultVal = []) {
 
 function escapeSqlLike(str) {
     if (!str) return '';
-    return String(str).replace(/[%_]/g, m => m === '%' ? '\\%' : '\\_');
+    return String(str).replace(/[%_\\]/g, m => '\\' + m);
 }
 
 function escapeHtml(str) {
@@ -115,12 +115,12 @@ app.get('/api/models', (req, res) => {
 
     if (search) {
         const safeSearch = `%${escapeSqlLike(search)}%`;
-        conditions.push('(name LIKE ? ESCAPE "\\" OR tags LIKE ? ESCAPE "\\")');
+        conditions.push('(name LIKE ? OR tags LIKE ?)');
         params.push(safeSearch, safeSearch);
     }
     if (tag) {
-        const safeTag = `%"${escapeSqlLike(tag)}"%`;
-        conditions.push('tags LIKE ? ESCAPE "\\"');
+        const safeTag = `%${escapeSqlLike(tag)}%`;
+        conditions.push('tags LIKE ?');
         params.push(safeTag);
     }
     if (conditions.length) query += ' WHERE ' + conditions.join(' AND ');
@@ -129,7 +129,8 @@ app.get('/api/models', (req, res) => {
     const sortOrder = sort === 'name' ? 'ASC' : 'DESC';
     query += ` ORDER BY ${sortField} ${sortOrder}`;
 
-    const total = db.prepare('SELECT COUNT(*) as count FROM models' + (conditions.length ? ' WHERE ' + conditions.join(' AND ') : '')).get().count;
+    const totalQuery = 'SELECT COUNT(*) as count FROM models' + (conditions.length ? ' WHERE ' + conditions.join(' AND ') : '');
+    const total = db.prepare(totalQuery).get(...params).count;
     const pageNum = parseInt(page) || 1;
     const limitNum = parseInt(limit) || 100;
     const offset = (pageNum - 1) * limitNum;
