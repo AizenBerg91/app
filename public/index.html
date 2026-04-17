@@ -24,6 +24,24 @@
             --secondary: #f0f0f3; --border: #ddd;
             --danger: #dc3545;
         }
+        [data-theme="blue"] {
+            --bg: #0a1628; --card-bg: #12243d; --accent: #3b82f6;
+            --accent-hover: #2563eb; --accent-light: #60a5fa; --text: #e2e8f0; --text-muted: #94a3b8;
+            --secondary: #1e3a5f; --border: #1e3a5f;
+            --danger: #ef4444;
+        }
+        [data-theme="green"] {
+            --bg: #0a1f14; --card-bg: #122a1d; --accent: #22c55e;
+            --accent-hover: #16a34a; --accent-light: #4ade80; --text: #e2e8f0; --text-muted: #94a3b8;
+            --secondary: #1a3d2a; --border: #1a3d2a;
+            --danger: #ef4444;
+        }
+        [data-theme="purple"] {
+            --bg: #1a0a28; --card-bg: #2d1243; --accent: #a855f7;
+            --accent-hover: #9333ea; --accent-light: #c084fc; --text: #e2e8f0; --text-muted: #94a3b8;
+            --secondary: #3d1a5c; --border: #3d1a5c;
+            --danger: #ef4444;
+        }
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
         
         header {
@@ -216,7 +234,7 @@
     <header>
         <div class="header-left">
             <div class="logo">Model Catalog</div>
-            <button class="theme-toggle" onclick="toggleTheme()" title="Сменить тему">🌙</button>
+            <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Сменить тему">🌙</button>
         </div>
         <div class="header-center">
             <div class="search-box"><span class="search-icon">🔍</span><input type="text" id="search" placeholder="Поиск..."></div>
@@ -297,16 +315,28 @@
             $('search').oninput = debounce(loadModels, 300);
         }
         
+        const themes = ['dark', 'light', 'blue', 'green', 'purple'];
+        
         function toggleTheme() {
             const html = document.documentElement;
-            const isLight = html.getAttribute('data-theme') === 'light';
-            html.setAttribute('data-theme', isLight ? 'dark' : 'light');
-            localStorage.setItem('theme', isLight ? 'dark' : 'light');
+            const current = html.getAttribute('data-theme') || 'dark';
+            const idx = themes.indexOf(current);
+            const next = themes[(idx + 1) % themes.length];
+            html.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+            updateThemeIcon(next);
+        }
+        
+        function updateThemeIcon(theme) {
+            const icons = { dark: '🌙', light: '☀️', blue: '🔵', green: '🟢', purple: '🟣' };
+            $('themeToggle').textContent = icons[theme] || '🌙';
         }
         
         (() => {
             const saved = localStorage.getItem('theme');
-            if (saved === 'light') document.documentElement.setAttribute('data-theme', 'light');
+            const theme = themes.includes(saved) ? saved : 'dark';
+            document.documentElement.setAttribute('data-theme', theme);
+            updateThemeIcon(theme);
         })();
         
         async function viewModel(id) {
