@@ -6,9 +6,8 @@ services:
     ports:
       - "4444:4444"
     volumes:
-      - uploads:/app/uploads
-      - videos:/app/videos
-      - dbdata:/app/data
+      - /volume2/Xpenplogy/app/uploads:/app/uploads
+      - /volume2/Xpenplogy/app/data:/app/data
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://localhost:4444/api/models"]
@@ -16,8 +15,3 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s
-
-volumes:
-  uploads:
-  videos:
-  dbdata:

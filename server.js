@@ -10,9 +10,8 @@ const PORT = process.env.PORT || 4444;
 
 const BASE_DIR = process.env.DATA_DIR || '/app/data';
 const UPLOADS_DIR = process.env.UPLOADS_DIR || '/app/uploads';
-const VIDEOS_DIR = process.env.VIDEOS_DIR || '/app/videos';
 
-[BASE_DIR, UPLOADS_DIR, VIDEOS_DIR].forEach(dir => {
+[BASE_DIR, UPLOADS_DIR].forEach(dir => {
     if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir, { recursive: true });
     }
@@ -23,7 +22,6 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(express.static('public'));
 app.use('/uploads', express.static(UPLOADS_DIR));
-app.use('/videos', express.static(VIDEOS_DIR));
 
 const db = new Database(path.join(BASE_DIR, 'models.db'));
 
@@ -50,21 +48,25 @@ db.exec(`
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        console.log('multer dest - body:', req.body, 'params:', req.params);
         const modelId = req.body.modelId || req.params.id;
         const modelName = req.body.name || '';
-        console.log('modelId:', modelId, 'modelName:', modelName);
         let folderName;
         if (!modelId || modelId === '0') {
             folderName = modelName ? sanitizeFolderName(modelName) : 'temp';
         } else {
-            folderName = modelId;
+            folderName = sanitizeFolderName(modelName);
         }
-        console.log('folderName:', folderName, 'UPLOADS_DIR:', UPLOADS_DIR);
-        const dest = file.fieldname === 'videos' 
-            ? path.join(VIDEOS_DIR, folderName)
-            : path.join(UPLOADS_DIR, folderName);
-        console.log('dest:', dest);
+        const baseFolder = path.join(UPLOADS_DIR, folderName);
+        let dest;
+        if (file.fieldname === 'avatar') {
+            dest = path.join(baseFolder, 'ava');
+        } else if (file.fieldname === 'photos') {
+            dest = path.join(baseFolder, 'photo');
+        } else if (file.fieldname === 'videos') {
+            dest = path.join(baseFolder, 'videos');
+        } else {
+            dest = baseFolder;
+        }
         if (!fs.existsSync(dest)) {
             fs.mkdirSync(dest, { recursive: true });
         }
@@ -161,10 +163,9 @@ app.get('/api/models', (req, res) => {
 
     const models = db.prepare(query).all(...params);
     
-    const getFileSize = (dir, modelName, filename) => {
+    const getFileSize = (dir, filename) => {
         if (!filename) return 0;
-        const fp = path.join(dir, sanitizeFolderName(modelName), filename);
-        return fs.existsSync(fp) ? fs.statSync(fp).size : 0;
+        return fs.existsSync(dir) ? fs.statSync(path.join(dir, filename)).size : 0;
     };
 
     res.json({
@@ -176,9 +177,9 @@ app.get('/api/models', (req, res) => {
             category: m.category || '',
             views: m.views || 0,
             created_at: m.created_at,
-            modelFolder: m.id.toString(),
-            photos: parseJson(m.photos).map(p => ({ name: p, size: getFileSize(UPLOADS_DIR, m.name, p) })),
-            videos: parseJson(m.videos).map(v => ({ name: v, size: getFileSize(VIDEOS_DIR, m.name, v) })),
+            modelFolder: sanitizeFolderName(m.name),
+            photos: parseJson(m.photos).map(p => ({ name: p, size: getFileSize(path.join(UPLOADS_DIR, sanitizeFolderName(m.name), 'photo'), p) })),
+            videos: parseJson(m.videos).map(v => ({ name: v, size: getFileSize(path.join(UPLOADS_DIR, sanitizeFolderName(m.name), 'videos'), v) })),
             tags: parseJson(m.tags)
         })),
         total,
@@ -194,10 +195,10 @@ app.get('/api/models/:id', (req, res) => {
 
     const getFileSize = (dir, filename) => {
         if (!filename) return 0;
-        const fp = path.join(dir, sanitizeFolderName(model.name), filename);
-        return fs.existsSync(fp) ? fs.statSync(fp).size : 0;
+        return fs.existsSync(dir) ? fs.statSync(path.join(dir, filename)).size : 0;
     };
 
+    const modelFolder = sanitizeFolderName(model.name);
     const photos = parseJson(model.photos);
     const videos = parseJson(model.videos);
 
@@ -210,9 +211,9 @@ app.get('/api/models/:id', (req, res) => {
         category: model.category || '',
         views: model.views || 0,
         created_at: model.created_at,
-        modelFolder: model.id.toString(),
-        photos: photos.map(p => ({ name: p, size: getFileSize(UPLOADS_DIR, p) })),
-        videos: videos.map(v => ({ name: v, size: getFileSize(VIDEOS_DIR, v) })),
+        modelFolder: modelFolder,
+        photos: photos.map(p => ({ name: p, size: getFileSize(path.join(UPLOADS_DIR, modelFolder, 'photo'), p) })),
+        videos: videos.map(v => ({ name: v, size: getFileSize(path.join(UPLOADS_DIR, modelFolder, 'videos'), v) })),
         tags: parseJson(model.tags)
     });
 });
@@ -254,24 +255,25 @@ app.post('/api/models', upload.fields([
     `).run(name.trim(), avatar, JSON.stringify(tagsArray), JSON.stringify(videos), JSON.stringify(photos), description, JSON.stringify(socialLinks), category);
 
     const newId = result.lastInsertRowid;
-    const oldFolder = sanitizeFolderName(name.trim());
-    const newFolder = newId.toString();
-    
-    if (oldFolder !== newFolder && oldFolder !== 'temp' && oldFolder !== 'unnamed') {
-        const moveFiles = (srcDir, destDir) => {
-            if (fs.existsSync(srcDir)) {
-                if (!fs.existsSync(destDir)) {
-                    fs.mkdirSync(destDir, { recursive: true });
-                }
-                fs.readdirSync(srcDir).forEach(file => {
-                    fs.renameSync(path.join(srcDir, file), path.join(destDir, file));
-                });
-                try { fs.rmdirSync(srcDir); } catch {}
+    const modelFolder = sanitizeFolderName(name.trim());
+
+    const moveFiles = (srcSubFolder, destSubFolder) => {
+        const srcDir = path.join(UPLOADS_DIR, modelFolder, srcSubFolder);
+        const destDir = path.join(UPLOADS_DIR, modelFolder, destSubFolder);
+        if (fs.existsSync(srcDir)) {
+            if (!fs.existsSync(destDir)) {
+                fs.mkdirSync(destDir, { recursive: true });
             }
-        };
-        moveFiles(path.join(UPLOADS_DIR, oldFolder), path.join(UPLOADS_DIR, newFolder));
-        moveFiles(path.join(VIDEOS_DIR, oldFolder), path.join(VIDEOS_DIR, newFolder));
-    }
+            fs.readdirSync(srcDir).forEach(file => {
+                fs.renameSync(path.join(srcDir, file), path.join(destDir, file));
+            });
+            try { fs.rmdirSync(srcDir); } catch {}
+        }
+    };
+
+    moveFiles('ava', 'ava');
+    moveFiles('photo', 'photo');
+    moveFiles('videos', 'videos');
     
     res.json({ 
         id: result.lastInsertRowid, 
@@ -315,7 +317,7 @@ app.put('/api/models/:id', upload.fields([
         }
         avatar = avatarFile.filename;
         if (model.avatar) {
-            deleteFiles([model.avatar], UPLOADS_DIR);
+            deleteFiles([model.avatar], path.join(UPLOADS_DIR, sanitizeFolderName(model.name), 'ava'));
         }
     }
 
@@ -356,12 +358,13 @@ app.delete('/api/models/:id', (req, res) => {
     const model = db.prepare('SELECT * FROM models WHERE id = ?').get(req.params.id);
     if (!model) return res.status(404).json({ error: 'Model not found' });
 
+    const modelFolder = sanitizeFolderName(model.name);
     const oldPhotos = parseJson(model.photos);
     const oldVideos = parseJson(model.videos);
 
-    deleteFiles(oldPhotos, UPLOADS_DIR);
-    deleteFiles(oldVideos, VIDEOS_DIR);
-    if (model.avatar) deleteFiles([model.avatar], UPLOADS_DIR);
+    if (fs.existsSync(path.join(UPLOADS_DIR, modelFolder))) {
+        fs.rmSync(path.join(UPLOADS_DIR, modelFolder), { recursive: true, force: true });
+    }
 
     db.prepare('DELETE FROM models WHERE id = ?').run(req.params.id);
     res.json({ success: true });
