@@ -319,12 +319,14 @@
             
             const photos = (m.photos || []).map(p => typeof p === 'object' ? p.name : (p || ''));
             const videos = (m.videos || []).map(v => typeof v === 'object' ? v.name : (v || ''));
-            window.mediaList = photos.map(p => '/uploads/' + p).concat(videos.map(v => '/videos/' + v));
+            const folder = m.modelFolder || m.id;
+            window.mediaList = photos.map(p => '/uploads/' + folder + '/' + p).concat(videos.map(v => '/videos/' + folder + '/' + v));
             window.currentPhotos = photos;
+            window.mediaFolder = folder;
             const totalSize = [...(m.photos || []), ...(m.videos || [])].reduce((sum, item) => sum + (item?.size || 0), 0);
             
             $('modalOverlay').classList.add('active');
-            const avatarSrc = m.avatar ? '/uploads/' + m.avatar : '';
+            const avatarSrc = m.avatar ? '/uploads/' + folder + '/' + m.avatar : '';
             $('modalContent').innerHTML = `
                 <button class="close-modal-btn" onclick="closeModal()">×</button>
                 <div class="detail-view">
@@ -345,7 +347,7 @@
                         <div class="detail-section">
                             <h3>Фото (${photos.length})</h3>
                             <div class="detail-gallery">
-                                ${photos.map((p, i) => `<div class="photo-item"><img src="/uploads/${p}" data-index="${i}" class="detail-photo" onclick="event.stopPropagation();viewPhoto(${i})"></div>`).join('')}
+                                ${photos.map((p, i) => `<div class="photo-item"><img src="/uploads/${folder}/${p}" data-index="${i}" class="detail-photo" onclick="event.stopPropagation();viewPhoto(${i})"></div>`).join('')}
                             </div>
                         </div>
                         ` : '<div class="detail-section"><h3>Фото</h3><p>Нет фото</p></div>'}
@@ -354,7 +356,7 @@
                         <div class="detail-section">
                             <h3>Видео (${videos.length})</h3>
                             <div class="detail-gallery videos">
-                                ${videos.map((v, i) => `<video src="/videos/${v}" controls playsinline preload="metadata"></video>`).join('')}
+                                ${videos.map((v, i) => `<video src="/videos/${folder}/${v}" controls playsinline preload="metadata"></video>`).join('')}
                             </div>
                         </div>
                         ` : '<div class="detail-section"><h3>Видео</h3><p>Нет видео</p></div>'}
@@ -399,12 +401,13 @@
                     const totalPhotos = photos.length;
                     const totalVideos = videos.length;
                     const totalMedia = totalPhotos + totalVideos;
-                    const cover = photos[0] ? '/uploads/' + photos[0].name : (videos[0] ? '/videos/' + videos[0].name : null);
+                    const folder = m.modelFolder || m.id;
+                    const cover = photos[0] ? '/uploads/' + folder + '/' + photos[0].name : (videos[0] ? '/videos/' + folder + '/' + videos[0].name : null);
                     return `
                     <div class="model-card" onclick="viewModel(${m.id})">
                         <div class="card-info">
                             <div class="card-header">
-                                ${m.avatar ? `<img src="/uploads/${m.avatar}" class="card-avatar">` : '<div class="card-avatar-placeholder">👤</div>'}
+                                ${m.avatar ? `<img src="/uploads/${folder}/${m.avatar}" class="card-avatar">` : '<div class="card-avatar-placeholder">👤</div>'}
                                 <div class="card-title">
                                     <div class="card-name">${escapeHtml(m.name)}</div>
                                     
@@ -462,6 +465,7 @@
             $('modalContent').innerHTML = `
                 <h2>${model?'✏️':'➕'}</h2>
                 <form onsubmit="save(event)" class="model-form">
+                    <input type="hidden" name="modelId" value="${model?.id || '0'}">
                     <div class="form-group"><input name="name" value="${model?.name||''}" required placeholder="Имя"></div>
                     <div class="form-group"><label>Аватар</label><label class="upload-zone"><input type="file" id="avatarInput" name="avatar" accept="image/*" onchange="previewAvatar()" style="display:none"><span>📷</span><span>Выбрать</span></label><div class="file-list" id="avatarPreview"></div></div>
                     <div class="form-group"><label>Фото</label><label class="upload-zone"><input type="file" id="photosInput" name="photos" accept="image/*" multiple onchange="previewPhotos()" style="display:none"><span>🖼️</span><span>Добавить</span></label><div class="file-list" id="photosPreview"></div></div>
@@ -608,7 +612,8 @@
             const m = await (await fetch('/api/models/' + id)).json();
             const photos = m.photos || [];
             const videos = m.videos || [];
-            const list = [...photos.map(p => '/uploads/' + p.name), ...videos.map(v => '/videos/' + v.name)];
+            const folder = m.modelFolder || m.id;
+            const list = [...photos.map(p => '/uploads/' + folder + '/' + p.name), ...videos.map(v => '/videos/' + folder + '/' + v.name)];
             openFullscreen(list[index], list);
         }
 
@@ -637,7 +642,21 @@
             form.set('tags', '[]');
 
             const url = window.editingId ? `/api/models/${window.editingId}` : '/api/models';
-            await fetch(url, { method: window.editingId ? 'PUT' : 'POST', body: form });
+            console.log('Save:', url, 'method:', window.editingId ? 'PUT' : 'POST', 'editingId:', window.editingId);
+            try {
+                const res = await fetch(url, { method: window.editingId ? 'PUT' : 'POST', body: form });
+                console.log('Save response:', res.status, res.ok);
+                if (!res.ok) {
+                    const err = await res.json();
+                    console.error('Save error:', err);
+                    alert(err.error || 'Ошибка');
+                    return;
+                }
+            } catch (e) {
+                console.error('Save fetch error:', e);
+                alert('Ошибка сети');
+                return;
+            }
             closeModal();
             loadModels();
         }
