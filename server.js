@@ -439,7 +439,14 @@ app.put('/api/models/:id', upload.fields([
     }
 
     if (oldFolder !== newFolder && fs.existsSync(path.join(UPLOADS_DIR, oldFolder))) {
-        fs.renameSync(path.join(UPLOADS_DIR, oldFolder), path.join(UPLOADS_DIR, newFolder));
+        const oldPath = path.join(UPLOADS_DIR, oldFolder);
+        const newPath = path.join(UPLOADS_DIR, newFolder);
+        
+        if (fs.existsSync(newPath)) {
+            fs.rmSync(newPath, { recursive: true, force: true });
+        }
+        
+        fs.renameSync(oldPath, newPath);
     }
 
     db.prepare(`
