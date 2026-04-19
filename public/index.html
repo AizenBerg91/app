@@ -207,8 +207,8 @@
         .detail-media-carousel-nav:hover { background: var(--accent); }
         .detail-media-carousel-nav.prev { left: 12px; }
         .detail-media-carousel-nav.next { right: 12px; }
-        .detail-media-carousel-dots { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; }
-        .detail-media-carousel-dot { width: 8px; height: 8px; background: rgba(255,255,255,0.4); border-radius: 50%; cursor: pointer; transition: all 0.2s; }
+        .detail-media-carousel-dots { position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; z-index: 10; }
+        .detail-media-carousel-dot { width: 8px; height: 8px; background: rgba(255,255,255,0.6); border-radius: 50%; cursor: pointer; transition: all 0.2s; }
         .detail-media-carousel-dot.active { background: white; width: 24px; border-radius: 4px; }
 .detail-media-carousel-counter { position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.6); padding: 6px 12px; border-radius: 16px; font-size: 13px; color: white; }
         
@@ -219,10 +219,10 @@
         .detail-video-carousel-nav:hover { background: var(--accent); }
         .detail-video-carousel-nav.prev { left: 12px; }
         .detail-video-carousel-nav.next { right: 12px; }
-        .detail-video-carousel-dots { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; }
-        .detail-video-carousel-dot { width: 8px; height: 8px; background: rgba(255,255,255,0.4); border-radius: 50%; cursor: pointer; transition: all 0.2s; }
+        .detail-video-carousel-dots { position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; z-index: 10; }
+        .detail-video-carousel-dot { width: 8px; height: 8px; background: rgba(255,255,255,0.6); border-radius: 50%; cursor: pointer; transition: all 0.2s; }
         .detail-video-carousel-dot.active { background: white; width: 24px; border-radius: 4px; }
-        .detail-video-carousel-counter { position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.6); padding: 6px 12px; border-radius: 16px; font-size: 13px; color: white; }
+        .detail-video-carousel-counter { position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.6); padding: 6px 12px; border-radius: 16px; font-size: 13px; color: white; z-index: 10; }
          
         .detail-hero-media { flex: 1; min-width: 300px; }
         .detail-hero-name { font-size: 42px; font-weight: 800; margin-bottom: 20px; letter-spacing: -0.5px; line-height: 1.1; text-align: center; }
