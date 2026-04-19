@@ -71,21 +71,34 @@
             transition: all 0.3s ease; border: 1px solid var(--border);
             overflow: hidden; cursor: pointer;
         }
-        .model-card:hover { transform: translateY(-6px); box-shadow: 0 12px 40px rgba(233,69,96,0.25); border-color: var(--accent); }
+        .model-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(233,69,96,0.2); border-color: var(--accent); }
         
+        .card-cover { position: relative; width: 100%; height: 200px; overflow: hidden; background: var(--secondary); }
+        .card-cover img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s; }
+        .model-card:hover .card-cover img { transform: scale(1.08); }
+        .card-cover-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 60%); }
+        .card-cover-badges { position: absolute; top: 12px; left: 12px; display: flex; gap: 6px; }
+        .card-cover-badge { background: rgba(0,0,0,0.7); padding: 4px 10px; border-radius: 12px; font-size: 12px; display: flex; align-items: center; gap: 4px; backdrop-filter: blur(4px); }
+        .card-cover-more { position: absolute; bottom: 12px; right: 12px; background: var(--accent); color: white; padding: 4px 12px; border-radius: 12px; font-size: 13px; font-weight: 600; }
         
-        .card-info { padding: 24px; text-align: center; }
-        .card-header { display: flex; flex-direction: column; align-items: center; gap: 14px; }
-        .card-avatar { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid var(--accent); box-shadow: var(--shadow-md); }
-        .card-avatar-placeholder { width: 120px; height: 120px; border-radius: 50%; background: var(--secondary); display: flex; align-items: center; justify-content: center; border: 4px solid var(--border); font-size: 48px; }
-        .card-title { width: 100%; }
-        .card-name { font-size: 18px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .card-info { padding: 20px; flex: 1; display: flex; flex-direction: column; }
+        .card-header { display: flex; align-items: center; gap: 14px; margin-bottom: 12px; }
+        .card-avatar { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; border: 3px solid var(--accent); box-shadow: var(--shadow-sm); flex-shrink: 0; }
+        .card-avatar-placeholder { width: 52px; height: 52px; border-radius: 50%; background: var(--secondary); display: flex; align-items: center; justify-content: center; border: 3px solid var(--border); font-size: 22px; flex-shrink: 0; }
+        .card-title { flex: 1; min-width: 0; }
+        .card-name { font-size: 17px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; }
+        .card-category { font-size: 11px; color: var(--accent); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
         
+        .card-description { font-size: 13px; color: var(--text-muted); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 12px; flex: 1; }
         
-        .card-stats { display: flex; gap: 14px; justify-content: center; margin-top: 14px; flex-wrap: wrap; }
-        .card-stats span { display: flex; align-items: center; gap: 6px; background: var(--bg); padding: 6px 14px; border-radius: 16px; font-size: 13px; }
-        .card-actions { display: flex; gap: 12px; padding: 16px 20px; border-top: 1px solid var(--border); background: var(--bg); }
-        .card-actions .btn { flex: 1; justify-content: center; padding: 12px 16px; font-size: 14px; }
+        .card-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+        .card-tag { background: var(--bg); padding: 4px 10px; border-radius: 12px; font-size: 11px; color: var(--text-muted); border: 1px solid var(--border); }
+        
+        .card-stats { display: flex; gap: 12px; border-top: 1px solid var(--border); padding-top: 14px; }
+        .card-stats span { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-muted); }
+        
+        .card-actions { display: flex; gap: 8px; padding: 14px 20px; border-top: 1px solid var(--border); background: var(--bg); }
+        .card-actions .btn { flex: 1; justify-content: center; padding: 10px 14px; font-size: 13px; }
         .model-media { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 12px; position: relative; z-index: 1; width: 100%; cursor: pointer; }
         .media-thumb { width: 72px; height: 72px; border-radius: var(--radius-sm); object-fit: cover; cursor: pointer; border: 2px solid transparent; transition: all 0.2s; position: relative; }
         .media-thumb:hover { border-color: var(--accent); transform: scale(1.05); }
@@ -181,31 +194,56 @@
         .model-detail { text-align: center; max-width: 800px; margin: 0 auto; }
         .model-detail h2 { margin: 16px 0; font-size: 28px; font-weight: 700; }
         .detail-header { position: relative; padding-top: 24px; margin-bottom: 24px; text-align: center; }
-        .detail-avatar { width: 250px; height: 250px; margin: 0 auto 24px; border-radius: 50%; overflow: hidden; border: 4px solid var(--accent); box-shadow: var(--shadow-lg); cursor: pointer; }
-        .detail-section { margin: 32px 0; text-align: left; background: var(--bg); border-radius: var(--radius-lg); padding: 24px; border: 1px solid var(--border); }
-        .detail-section h3 { font-size: 16px; color: var(--text-muted); margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
-        .detail-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
-        .detail-gallery img { width: 100%; aspect-ratio: 1; border-radius: var(--radius-md); object-fit: cover; cursor: pointer; border: 2px solid transparent; transition: all 0.2s; }
-        .detail-gallery img:hover { border-color: var(--accent); transform: scale(1.02); }
         
         .detail-view { display: flex; flex-direction: column; background: var(--bg); }
-        .detail-content { flex: 1; overflow-y: auto; padding: 40px; max-width: 1200px; margin: 0 auto; width: 100%; }
-        .detail-info { text-align: center; margin-bottom: 40px; }
-        .detail-avatar { width: 320px; height: 320px; border-radius: 50%; object-fit: cover; border: 5px solid var(--accent); margin: 0 auto 24px; box-shadow: var(--shadow-lg); }
-        .detail-info h2 { font-size: 42px; font-weight: 800; margin-bottom: 20px; letter-spacing: -0.5px; }
+        .detail-content { flex: 1; overflow-y: auto; padding: 24px; max-width: 1400px; margin: 0 auto; width: 100%; }
         
-
-        .detail-meta { display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; }
-        .detail-meta span { display: flex; align-items: center; gap: 8px; background: var(--card-bg); padding: 14px 28px; border-radius: 30px; font-size: 18px; border: 1px solid var(--border); }
-        .detail-section { margin: 48px 0; background: var(--card-bg); border-radius: var(--radius-xl); padding: 32px; border: 1px solid var(--border); }
-        .detail-section h3 { font-size: 20px; color: var(--text-muted); margin-bottom: 24px; text-transform: uppercase; font-weight: 600; letter-spacing: 1px; }
-        .detail-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
-        .detail-gallery img { width: 100%; aspect-ratio: 1; border-radius: var(--radius-lg); object-fit: cover; cursor: pointer; transition: all 0.2s; }
+        .detail-hero { display: flex; gap: 40px; align-items: flex-start; margin-bottom: 40px; flex-wrap: wrap; justify-content: center; }
+        .detail-hero-avatar { position: relative; flex-shrink: 0; }
+        .detail-hero-avatar img { width: 280px; height: 280px; border-radius: 50%; object-fit: cover; border: 5px solid var(--accent); box-shadow: var(--shadow-xl); cursor: pointer; transition: all 0.3s; }
+        .detail-hero-avatar img:hover { transform: scale(1.03); box-shadow: 0 0 0 8px rgba(233,69,96,0.2), var(--shadow-xl); }
+        .detail-hero-noavatar { width: 280px; height: 280px; border-radius: 50%; background: var(--secondary); display: flex; align-items: center; justify-content: center; border: 5px solid var(--border); font-size: 100px; }
+        
+        .detail-hero-info { flex: 1; min-width: 300px; text-align: left; padding-top: 20px; }
+        .detail-hero-name { font-size: 42px; font-weight: 800; margin-bottom: 12px; letter-spacing: -0.5px; line-height: 1.1; }
+        .detail-hero-category { display: inline-block; background: linear-gradient(135deg, var(--accent), var(--accent-hover)); color: white; padding: 8px 20px; border-radius: 20px; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; }
+        .detail-hero-description { color: var(--text-muted); font-size: 16px; line-height: 1.7; margin-bottom: 24px; max-width: 600px; }
+        
+        .detail-hero-stats { display: flex; gap: 16px; flex-wrap: wrap; }
+        .detail-hero-stat { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px 24px; display: flex; align-items: center; gap: 12px; min-width: 120px; }
+        .detail-hero-stat-icon { width: 44px; height: 44px; background: var(--secondary); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        .detail-hero-stat-value { font-size: 22px; font-weight: 700; }
+        .detail-hero-stat-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        .detail-hero-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 20px; }
+        .detail-hero-tag { background: var(--bg); border: 1px solid var(--border); padding: 6px 14px; border-radius: 16px; font-size: 13px; color: var(--text-muted); transition: all 0.2s; }
+        .detail-hero-tag:hover { border-color: var(--accent); color: var(--accent); }
+        
+        .detail-section { margin: 32px 0; background: var(--card-bg); border-radius: var(--radius-xl); padding: 28px; border: 1px solid var(--border); }
+        .detail-section h3 { font-size: 18px; color: var(--text-muted); margin-bottom: 20px; text-transform: uppercase; font-weight: 600; letter-spacing: 1px; display: flex; align-items: center; gap: 10px; }
+        .detail-section h3 .count { background: var(--accent); color: white; padding: 2px 10px; border-radius: 10px; font-size: 12px; }
+        
+        .detail-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+        .detail-gallery img { width: 100%; aspect-ratio: 1; border-radius: var(--radius-md); object-fit: cover; cursor: pointer; transition: all 0.2s; }
         .detail-gallery img:hover { transform: scale(1.05); box-shadow: var(--shadow-md); }
-        .detail-gallery.videos { grid-template-columns: 1fr; gap: 12px; }
-        .detail-gallery video { width: 100%; border-radius: var(--radius-md); background: #000; }
-        .detail-actions { display: flex; gap: 20px; justify-content: center; padding: 32px; border-top: 1px solid var(--border); background: var(--card-bg); }
-        .detail-actions .btn { padding: 16px 32px; font-size: 18px; }
+        
+        .detail-gallery.videos { grid-template-columns: 1fr; gap: 16px; }
+        .detail-gallery video { width: 100%; border-radius: var(--radius-md); background: #000; max-height: 400px; }
+        
+        .detail-actions { display: flex; gap: 16px; justify-content: center; padding: 24px; border-top: 1px solid var(--border); background: var(--card-bg); flex-wrap: wrap; }
+        .detail-actions .btn { padding: 14px 28px; font-size: 16px; min-width: 160px; }
+        
+        .detail-empty { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+        .detail-empty-icon { font-size: 64px; opacity: 0.3; margin-bottom: 16px; }
+        
+        @media (max-width: 768px) {
+            .detail-hero { flex-direction: column; align-items: center; text-align: center; }
+            .detail-hero-info { text-align: center; }
+            .detail-hero-avatar img, .detail-hero-noavatar { width: 200px; height: 200px; }
+            .detail-hero-name { font-size: 32px; }
+            .detail-hero-stats { justify-content: center; }
+            .detail-gallery { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+        }
         
         @media (max-width: 768px) {
             header { flex-wrap: wrap; gap: 12px; }
@@ -327,42 +365,64 @@
 
             $('modalOverlay').classList.add('active');
             const avatarSrc = m.avatar ? '/uploads/' + folder + '/ava/' + m.avatar : '';
+            
             $('modalContent').innerHTML = `
                 <button class="close-modal-btn" onclick="closeModal()">×</button>
                 <div class="detail-view">
                     <div class="detail-content">
-                        <div class="detail-info">
-                            ${avatarSrc ? `<img src="${avatarSrc}" class="detail-avatar" onclick="event.stopPropagation();openFullscreen('${avatarSrc}')">` : ''}
-                            <h2>${escapeHtml(m.name)}</h2>
-                            
-                            
-                            <div class="detail-meta">
-                                <span>📷 ${photos.length} фото</span>
-                                <span>🎬 ${videos.length} видео</span>
-                                <span>💾 ${formatSize(totalSize)}</span>
+                        <div class="detail-hero">
+                            <div class="detail-hero-avatar">
+                                ${avatarSrc 
+                                    ? `<img src="${avatarSrc}" onclick="event.stopPropagation();openFullscreen('${avatarSrc}')">` 
+                                    : `<div class="detail-hero-noavatar">👤</div>`}
                             </div>
+                            <div class="detail-hero-info">
+                                <h1 class="detail-hero-name">${escapeHtml(m.name)}</h1>
+                                <div class="detail-hero-stats">
+                                    <div class="detail-hero-stat">
+                                        <div class="detail-hero-stat-icon">📷</div>
+                                        <div>
+                                            <div class="detail-hero-stat-value">${photos.length}</div>
+                                            <div class="detail-hero-stat-label">Фото</div>
+                                        </div>
+                                    </div>
+                                    <div class="detail-hero-stat">
+                                        <div class="detail-hero-stat-icon">🎬</div>
+                                        <div>
+                                            <div class="detail-hero-stat-value">${videos.length}</div>
+                                            <div class="detail-hero-stat-label">Видео</div>
+                                        </div>
+                                    </div>
+                                    <div class="detail-hero-stat">
+                                        <div class="detail-hero-stat-icon">💾</div>
+                                        <div>
+                                            <div class="detail-hero-stat-value">${formatSize(totalSize)}</div>
+                                            <div class="detail-hero-stat-label">Размер</div>
+                                        </div>
+                                    </div>
+                                </div>
                         </div>
                         
                         ${photos.length > 0 ? `
                         <div class="detail-section">
-                            <h3>Фото (${photos.length})</h3>
+                            <h3>📷 Фото <span class="count">${photos.length}</span></h3>
                             <div class="detail-gallery">
-                                ${photos.map((p, i) => `<div class="photo-item"><img src="/uploads/${folder}/photo/${p}" data-index="${i}" class="detail-photo" onclick="event.stopPropagation();viewPhoto(${i})"></div>`).join('')}
+                                ${photos.map((p, i) => `<img src="/uploads/${folder}/photo/${p}" data-index="${i}" class="detail-photo" onclick="event.stopPropagation();viewPhoto(${i})">`).join('')}
                             </div>
                         </div>
-                        ` : '<div class="detail-section"><h3>Фото</h3><p>Нет фото</p></div>'}
+                        ` : '<div class="detail-section"><div class="detail-empty"><div class="detail-empty-icon">📷</div>Нет фото</div>'}
                         
                         ${videos.length > 0 ? `
                         <div class="detail-section">
-                            <h3>Видео (${videos.length})</h3>
+                            <h3>🎬 Видео <span class="count">${videos.length}</span></h3>
                             <div class="detail-gallery videos">
-                                ${videos.map((v, i) => `<video src="/uploads/${folder}/videos/${v}" controls playsinline preload="metadata"></video>`).join('')}
+                                ${videos.map(v => `<video src="/uploads/${folder}/videos/${v}" controls playsinline preload="metadata"></video>`).join('')}
                             </div>
                         </div>
-                        ` : '<div class="detail-section"><h3>Видео</h3><p>Нет видео</p></div>'}
+                        ` : ''}
                         
                         <div class="detail-actions">
-                            <button class="btn btn-secondary" onclick="closeModal();openById(${m.id})">✏️ Редактировать</button>
+                            <button class="btn btn-primary" onclick="closeModal();openById(${m.id})">✏️ Редактировать</button>
                             <button class="btn btn-danger" onclick="closeModal();confirmDelete(${m.id})">🗑️ Удалить</button>
                         </div>
                     </div>
@@ -403,23 +463,32 @@
                     const totalMedia = totalPhotos + totalVideos;
                     const folder = m.modelFolder || m.id;
                     const cover = photos[0] ? '/uploads/' + folder + '/photo/' + photos[0].name : (videos[0] ? '/uploads/' + folder + '/videos/' + videos[0].name : null);
+                    const totalSize = photos.reduce((s,p)=>s+(p.size||0),0) + videos.reduce((s,v)=>s+(v.size||0),0);
+                    const category = m.category || '';
+                    const description = m.description || '';
+                    const tags = m.tags || [];
+                    
                     return `
                     <div class="model-card" onclick="viewModel(${m.id})">
+                        <div class="card-cover">
+                            ${cover ? `<img src="${cover}" alt="${escapeHtml(m.name)}">` : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:48px;opacity:0.2">📷</div>'}
+                            <div class="card-cover-overlay"></div>
+                            <div class="card-cover-badges">
+                                ${totalPhotos > 0 ? `<span class="card-cover-badge">📷 ${totalPhotos}</span>` : ''}
+                                ${totalVideos > 0 ? `<span class="card-cover-badge">🎬 ${totalVideos}</span>` : ''}
+                            </div>
+                            ${totalMedia > 1 ? `<span class="card-cover-more">+${totalMedia - 1}</span>` : ''}
+                        </div>
                         <div class="card-info">
                             <div class="card-header">
                                 ${m.avatar ? `<img src="/uploads/${folder}/ava/${m.avatar}" class="card-avatar">` : '<div class="card-avatar-placeholder">👤</div>'}
                                 <div class="card-title">
                                     <div class="card-name">${escapeHtml(m.name)}</div>
-                                    
                                 </div>
                             </div>
-                            ${totalMedia > 0 ? `
                             <div class="card-stats">
-                                <span>📷 ${totalPhotos}</span>
-                                <span>🎬 ${totalVideos}</span>
-                                <span>💾 ${((photos.reduce((s,p)=>s+(p.size||0),0) + videos.reduce((s,v)=>s+(v.size||0),0)) / 1024 / 1024).toFixed(1)} МБ</span>
+                                <span>💾 ${formatSize(totalSize)}</span>
                             </div>
-                            ` : ''}
                         </div>
                         <div class="card-actions">
                             <button class="btn btn-secondary" onclick="event.stopPropagation();openById(${m.id})">✏️ Изменить</button>
@@ -466,7 +535,7 @@
                 <h2>${model?'✏️':'➕'}</h2>
                 <form onsubmit="save(event)" class="model-form">
                     <input type="hidden" name="modelId" value="${model?.id || '0'}">
-                    <div class="form-group"><input name="name" value="${model?.name||''}" required placeholder="Имя"></div>
+                    <div class="form-group"><input name="name" value="${model?.name||''}" required placeholder="Имя модели"></div>
                     <div class="form-group"><label>Аватар</label><label class="upload-zone"><input type="file" id="avatarInput" name="avatar" accept="image/*" onchange="previewAvatar()" style="display:none"><span>📷</span><span>Выбрать</span></label><div class="file-list" id="avatarPreview"></div></div>
                     <div class="form-group"><label>Фото</label><label class="upload-zone"><input type="file" id="photosInput" name="photos" accept="image/*" multiple onchange="previewPhotos()" style="display:none"><span>🖼️</span><span>Добавить</span></label><div class="file-list" id="photosPreview"></div></div>
                     <div class="form-group"><label>Видео</label><label class="upload-zone"><input type="file" id="videosInput" name="videos" multiple onchange="previewVideos()" style="display:none"><span>🎬</span><span>Добавить</span></label><div class="file-list" id="videosPreview"></div></div>
@@ -640,6 +709,7 @@
             const form = new FormData(e.target);
             
             form.set('tags', '[]');
+            form.set('social_links', '[]');
 
             const url = window.editingId ? `/api/models/${window.editingId}` : '/api/models';
             console.log('Save:', url, 'method:', window.editingId ? 'PUT' : 'POST', 'editingId:', window.editingId);
