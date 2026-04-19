@@ -275,10 +275,8 @@ app.get('/api/models/:id', (req, res) => {
 
 app.post('/api/models', upload.fields([
     { name: 'avatar', maxCount: 1 },
-    { name: 'photos', maxCount: 10 },
-    { name: 'videos', maxCount: 10 },
-    { name: 'existing_photos' },
-    { name: 'existing_videos' }
+    { name: 'photos', maxCount: 100 },
+    { name: 'videos', maxCount: 100 }
 ]), async (req, res) => {
     const { name, tags } = req.body;
     
@@ -364,9 +362,6 @@ app.post('/api/models', upload.fields([
         tags: tagsArray, 
         videos,
         photos,
-        description,
-        social_links: socialLinks,
-        category,
         views: 0,
         created_at: new Date().toISOString()
     });
@@ -374,17 +369,13 @@ app.post('/api/models', upload.fields([
 
 app.put('/api/models/:id', upload.fields([
     { name: 'avatar', maxCount: 1 },
-    { name: 'photos', maxCount: 10 },
-    { name: 'videos', maxCount: 10 },
-    { name: 'existing_photos' },
-    { name: 'existing_videos' }
-]), (req, res) => {
+    { name: 'photos', maxCount: 100 },
+    { name: 'videos', maxCount: 100 }
+]), async (req, res) => {
     const id = req.params.id;
     if (!validateId(id)) return res.status(400).json({ error: 'Invalid ID' });
 
-    const { name, tags, existing_avatar } = req.body;
-    const existingPhotos = getFormArray(req, 'existing_photos');
-    const existingVideos = getFormArray(req, 'existing_videos');
+    const { name, tags } = req.body;
 
     const model = db.prepare('SELECT * FROM models WHERE id = ?').get(id);
     if (!model) return res.status(404).json({ error: 'Model not found' });
@@ -396,54 +387,73 @@ app.put('/api/models/:id', upload.fields([
     const oldPhotos = parseJson(model.photos);
     const oldVideos = parseJson(model.videos);
 
-    let avatar = existing_avatar || model.avatar;
+    let avatar = model.avatar;
     const avatarFile = req.files?.['avatar']?.[0];
     if (avatarFile) {
         if (!validateFile(avatarFile, ALLOWED_IMAGES)) {
             return res.status(400).json({ error: 'Invalid avatar file type' });
         }
         avatar = avatarFile.filename;
-        if (model.avatar) {
-            deleteFiles([model.avatar], path.join(UPLOADS_DIR, newFolder, 'ava'));
-        }
     }
 
     const photosFiles = req.files?.['photos']?.filter(f => validateFile(f, ALLOWED_IMAGES)) || [];
     const newPhotos = photosFiles.map(f => f.filename);
 
-    const videosFiles = req.files?.['videos']?.filter(f => validateFile(f, ALLOWED_VIDEOS)) || [];
-    const newVideos = videosFiles.map(f => f.filename);
-    
-    const photosArray = newPhotos.length > 0 ? newPhotos : (existingPhotos.length > 0 && existingPhotos[0] ? existingPhotos : oldPhotos);
-    const videosArray = newVideos.length > 0 ? newVideos : (existingVideos.length > 0 && existingVideos[0] ? existingVideos : oldVideos);
-    const tagsArray = tags ? parseJson(tags) : parseJson(model.tags);
-    const description = req.body.description !== undefined ? req.body.description : (model.description || '');
-    const socialLinks = req.body.social_links ? parseJson(req.body.social_links) : parseJson(model.social_links);
-    const category = req.body.category !== undefined ? req.body.category : (model.category || '');
-
     const newName = name ? name.trim() : model.name;
     const oldFolder = sanitizeFolderName(model.name);
     const newFolder = sanitizeFolderName(newName);
+
+    const videosFiles = req.files?.['videos']?.filter(f => validateFile(f, ALL_VIDEO_TYPES)) || [];
+    const supportedVideos = videosFiles.filter(f => validateFile(f, ALLOWED_VIDEOS));
+    const legacyVideos = videosFiles.filter(f => LEGACY_VIDEO_FORMATS.includes(f.mimetype));
+    const newVideos = supportedVideos.map(f => f.filename);
+    
+    if (legacyVideos.length > 0) {
+        const videosDir = path.join(UPLOADS_DIR, newFolder, 'videos');
+        if (!fs.existsSync(videosDir)) fs.mkdirSync(videosDir, { recursive: true });
+
+        const convertPromises = legacyVideos.map(async (f) => {
+            try {
+                const converted = await convertVideo(f.path, videosDir, 'mp4');
+                newVideos.push(converted);
+                if (fs.existsSync(f.path)) fs.unlinkSync(f.path);
+                return converted;
+            } catch (err) {
+                console.error('Video conversion failed:', f.filename, err.message);
+                return null;
+            }
+        });
+
+        const convertedVideos = await Promise.all(convertPromises);
+        convertedVideos.filter(Boolean).forEach(v => {
+            if (!newVideos.includes(v)) newVideos.push(v);
+        });
+    }
+    
+    const photosArray = newPhotos.length > 0 ? newPhotos : oldPhotos;
+    const videosArray = newVideos.length > 0 ? newVideos : oldVideos;
+    const tagsArray = tags ? parseJson(tags) : parseJson(model.tags);
+
+    if (avatarFile && model.avatar) {
+        deleteFiles([model.avatar], path.join(UPLOADS_DIR, oldFolder, 'ava'));
+    }
 
     if (oldFolder !== newFolder && fs.existsSync(path.join(UPLOADS_DIR, oldFolder))) {
         fs.renameSync(path.join(UPLOADS_DIR, oldFolder), path.join(UPLOADS_DIR, newFolder));
     }
 
     db.prepare(`
-        UPDATE models SET name = ?, avatar = ?, tags = ?, videos = ?, photos = ?, description = ?, social_links = ?, category = ?, updated_at = CURRENT_TIMESTAMP
+        UPDATE models SET name = ?, avatar = ?, tags = ?, videos = ?, photos = ?, updated_at = CURRENT_TIMESTAMP
         WHERE id = ?
-    `).run(newName, avatar, JSON.stringify(tagsArray), JSON.stringify(videosArray), JSON.stringify(photosArray), description, JSON.stringify(socialLinks), category, id);
+    `).run(newName, avatar, JSON.stringify(tagsArray), JSON.stringify(videosArray), JSON.stringify(photosArray), id);
 
     res.json({ 
-        id, 
+        id,
         name: escapeHtml(newName), 
         avatar, 
         tags: tagsArray, 
         videos: videosArray, 
         photos: photosArray,
-        description,
-        social_links: socialLinks,
-        category,
         views: model.views || 0,
         created_at: model.created_at
     });

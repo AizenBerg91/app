@@ -72,21 +72,13 @@
             overflow: hidden; cursor: pointer;
         }
         .model-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(233,69,96,0.2); border-color: var(--accent); }
-        
-        .card-cover { position: relative; width: 100%; height: 200px; overflow: hidden; background: var(--secondary); }
-        .card-cover img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s; }
-        .model-card:hover .card-cover img { transform: scale(1.08); }
-        .card-cover-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 60%); }
-        .card-cover-badges { position: absolute; top: 12px; left: 12px; display: flex; gap: 6px; }
-        .card-cover-badge { background: rgba(0,0,0,0.7); padding: 4px 10px; border-radius: 12px; font-size: 12px; display: flex; align-items: center; gap: 4px; backdrop-filter: blur(4px); }
-        .card-cover-more { position: absolute; bottom: 12px; right: 12px; background: var(--accent); color: white; padding: 4px 12px; border-radius: 12px; font-size: 13px; font-weight: 600; }
-        
-        .card-info { padding: 20px; flex: 1; display: flex; flex-direction: column; }
-        .card-header { display: flex; align-items: center; gap: 14px; margin-bottom: 12px; }
-        .card-avatar { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; border: 3px solid var(--accent); box-shadow: var(--shadow-sm); flex-shrink: 0; }
-        .card-avatar-placeholder { width: 52px; height: 52px; border-radius: 50%; background: var(--secondary); display: flex; align-items: center; justify-content: center; border: 3px solid var(--border); font-size: 22px; flex-shrink: 0; }
+         
+        .card-info { padding: 32px 20px; flex: 1; display: flex; flex-direction: column; align-items: center; text-align: center; }
+        .card-header { display: flex; flex-direction: column; align-items: center; gap: 14px; margin-bottom: 16px; }
+        .card-avatar { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 4px solid var(--accent); box-shadow: var(--shadow-md); flex-shrink: 0; }
+        .card-avatar-placeholder { width: 100px; height: 100px; border-radius: 50%; background: var(--secondary); display: flex; align-items: center; justify-content: center; border: 4px solid var(--border); font-size: 40px; flex-shrink: 0; }
         .card-title { flex: 1; min-width: 0; }
-        .card-name { font-size: 17px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; }
+        .card-name { font-size: 20px; font-weight: 700; }
         .card-category { font-size: 11px; color: var(--accent); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
         
         .card-description { font-size: 13px; color: var(--text-muted); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 12px; flex: 1; }
@@ -118,6 +110,8 @@
         .fullscreen-viewer { position: fixed; inset: 0; background: #000; z-index: 1000; display: none; align-items: center; justify-content: center; flex-direction: column; cursor: pointer; }
         .fullscreen-viewer.active { display: flex; }
         .fullscreen-viewer img, .fullscreen-viewer video { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .fullscreen-content { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+        .fullscreen-content img, .fullscreen-content video { max-width: 100%; max-height: 100%; object-fit: contain; }
         .fullscreen-close { position: absolute; top: 20px; right: 20px; width: 50px; height: 50px; font-size: 32px; color: #fff; cursor: pointer; background: rgba(255,255,255,0.15); border: none; border-radius: 50%; }
         .fullscreen-nav { position: absolute; top: 50%; transform: translateY(-50%); width: 60px; height: 60px; background: rgba(255,255,255,0.15); border: none; border-radius: 50%; color: #fff; font-size: 28px; cursor: pointer; }
         .fullscreen-nav.prev { left: 20px; }
@@ -204,21 +198,41 @@
         .detail-hero-avatar img:hover { transform: scale(1.03); box-shadow: 0 0 0 8px rgba(233,69,96,0.2), var(--shadow-xl); }
         .detail-hero-noavatar { width: 280px; height: 280px; border-radius: 50%; background: var(--secondary); display: flex; align-items: center; justify-content: center; border: 5px solid var(--border); font-size: 100px; }
         
-        .detail-hero-info { flex: 1; min-width: 300px; text-align: left; padding-top: 20px; }
-        .detail-hero-name { font-size: 42px; font-weight: 800; margin-bottom: 12px; letter-spacing: -0.5px; line-height: 1.1; }
-        .detail-hero-category { display: inline-block; background: linear-gradient(135deg, var(--accent), var(--accent-hover)); color: white; padding: 8px 20px; border-radius: 20px; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; }
-        .detail-hero-description { color: var(--text-muted); font-size: 16px; line-height: 1.7; margin-bottom: 24px; max-width: 600px; }
+        .detail-hero-media { flex: 1; min-width: 300px; }
         
-        .detail-hero-stats { display: flex; gap: 16px; flex-wrap: wrap; }
+        .detail-media-carousel { position: relative; width: 100%; max-width: 600px; margin: 0 auto; border-radius: var(--radius-xl); overflow: hidden; background: #000; }
+        .detail-media-carousel-track { display: flex; transition: transform 0.5s ease; }
+        .detail-media-carousel-track img, .detail-media-carousel-track video { width: 100%; aspect-ratio: 1; object-fit: contain; flex-shrink: 0; background: #000; }
+        .detail-media-carousel-nav { position: absolute; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; background: rgba(255,255,255,0.15); border: none; border-radius: 50%; color: white; font-size: 20px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
+        .detail-media-carousel-nav:hover { background: var(--accent); }
+        .detail-media-carousel-nav.prev { left: 12px; }
+        .detail-media-carousel-nav.next { right: 12px; }
+        .detail-media-carousel-dots { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; }
+        .detail-media-carousel-dot { width: 8px; height: 8px; background: rgba(255,255,255,0.4); border-radius: 50%; cursor: pointer; transition: all 0.2s; }
+        .detail-media-carousel-dot.active { background: white; width: 24px; border-radius: 4px; }
+.detail-media-carousel-counter { position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.6); padding: 6px 12px; border-radius: 16px; font-size: 13px; color: white; }
+        
+        .detail-video-carousel { position: relative; width: 100%; max-width: 600px; margin: 0 auto; border-radius: var(--radius-xl); overflow: hidden; background: #000; }
+        .detail-video-carousel-track { display: flex; transition: transform 0.5s ease; }
+        .detail-video-carousel-track video { width: 100%; aspect-ratio: 16/9; object-fit: contain; flex-shrink: 0; background: #000; }
+        .detail-video-carousel-nav { position: absolute; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; background: rgba(255,255,255,0.15); border: none; border-radius: 50%; color: white; font-size: 20px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
+        .detail-video-carousel-nav:hover { background: var(--accent); }
+        .detail-video-carousel-nav.prev { left: 12px; }
+        .detail-video-carousel-nav.next { right: 12px; }
+        .detail-video-carousel-dots { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; }
+        .detail-video-carousel-dot { width: 8px; height: 8px; background: rgba(255,255,255,0.4); border-radius: 50%; cursor: pointer; transition: all 0.2s; }
+        .detail-video-carousel-dot.active { background: white; width: 24px; border-radius: 4px; }
+        .detail-video-carousel-counter { position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.6); padding: 6px 12px; border-radius: 16px; font-size: 13px; color: white; }
+         
+        .detail-hero-media { flex: 1; min-width: 300px; }
+        .detail-hero-name { font-size: 42px; font-weight: 800; margin-bottom: 20px; letter-spacing: -0.5px; line-height: 1.1; text-align: center; }
+         
+        .detail-hero-stats { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; margin-top: 20px; }
         .detail-hero-stat { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px 24px; display: flex; align-items: center; gap: 12px; min-width: 120px; }
         .detail-hero-stat-icon { width: 44px; height: 44px; background: var(--secondary); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
         .detail-hero-stat-value { font-size: 22px; font-weight: 700; }
         .detail-hero-stat-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
-        
-        .detail-hero-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 20px; }
-        .detail-hero-tag { background: var(--bg); border: 1px solid var(--border); padding: 6px 14px; border-radius: 16px; font-size: 13px; color: var(--text-muted); transition: all 0.2s; }
-        .detail-hero-tag:hover { border-color: var(--accent); color: var(--accent); }
-        
+         
         .detail-section { margin: 32px 0; background: var(--card-bg); border-radius: var(--radius-xl); padding: 28px; border: 1px solid var(--border); }
         .detail-section h3 { font-size: 18px; color: var(--text-muted); margin-bottom: 20px; text-transform: uppercase; font-weight: 600; letter-spacing: 1px; display: flex; align-items: center; gap: 10px; }
         .detail-section h3 .count { background: var(--accent); color: white; padding: 2px 10px; border-radius: 10px; font-size: 12px; }
@@ -237,10 +251,9 @@
         .detail-empty-icon { font-size: 64px; opacity: 0.3; margin-bottom: 16px; }
         
         @media (max-width: 768px) {
-            .detail-hero { flex-direction: column; align-items: center; text-align: center; }
-            .detail-hero-info { text-align: center; }
+            .detail-hero { flex-direction: column; align-items: center; }
             .detail-hero-avatar img, .detail-hero-noavatar { width: 200px; height: 200px; }
-            .detail-hero-name { font-size: 32px; }
+            .detail-hero-name { font-size: 32px; text-align: center; }
             .detail-hero-stats { justify-content: center; }
             .detail-gallery { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
         }
@@ -334,6 +347,12 @@
             window.fsPrev = fsPrev;
             window.fsNext = fsNext;
             window.viewMedia = viewMedia;
+            window.detailCarouselPrev = detailCarouselPrev;
+            window.detailCarouselNext = detailCarouselNext;
+            window.detailCarouselGo = detailCarouselGo;
+            window.detailVideoCarouselPrev = detailVideoCarouselPrev;
+            window.detailVideoCarouselNext = detailVideoCarouselNext;
+            window.detailVideoCarouselGo = detailVideoCarouselGo;
             
             loadModels();
             $('search').oninput = debounce(loadModels, 300);
@@ -358,25 +377,24 @@
             const photos = (m.photos || []).map(p => typeof p === 'object' ? p.name : (p || ''));
             const videos = (m.videos || []).map(v => typeof v === 'object' ? v.name : (v || ''));
             const folder = m.modelFolder || m.id;
-            window.mediaList = photos.map(p => '/uploads/' + folder + '/photo/' + p).concat(videos.map(v => '/uploads/' + folder + '/videos/' + v));
-            window.currentPhotos = photos;
+            const photoList = photos.map(p => '/uploads/' + folder + '/photo/' + p);
+            const videoList = videos.map(v => '/uploads/' + folder + '/videos/' + v);
+            photoListGlobal = photoList;
+            videoListGlobal = videoList;
+            window.currentPhotos = photoList;
             window.mediaFolder = folder;
             const totalSize = [...(m.photos || []), ...(m.videos || [])].reduce((sum, item) => sum + (item?.size || 0), 0);
 
             $('modalOverlay').classList.add('active');
-            const avatarSrc = m.avatar ? '/uploads/' + folder + '/ava/' + m.avatar : '';
+            detailCarouselIndex = 0;
+            detailVideoCarouselIndex = 0;
             
             $('modalContent').innerHTML = `
                 <button class="close-modal-btn" onclick="closeModal()">×</button>
                 <div class="detail-view">
                     <div class="detail-content">
                         <div class="detail-hero">
-                            <div class="detail-hero-avatar">
-                                ${avatarSrc 
-                                    ? `<img src="${avatarSrc}" onclick="event.stopPropagation();openFullscreen('${avatarSrc}')">` 
-                                    : `<div class="detail-hero-noavatar">👤</div>`}
-                            </div>
-                            <div class="detail-hero-info">
+                            <div class="detail-hero-media">
                                 <h1 class="detail-hero-name">${escapeHtml(m.name)}</h1>
                                 <div class="detail-hero-stats">
                                     <div class="detail-hero-stat">
@@ -401,22 +419,43 @@
                                         </div>
                                     </div>
                                 </div>
-                        </div>
-                        
-                        ${photos.length > 0 ? `
-                        <div class="detail-section">
-                            <h3>📷 Фото <span class="count">${photos.length}</span></h3>
-                            <div class="detail-gallery">
-                                ${photos.map((p, i) => `<img src="/uploads/${folder}/photo/${p}" data-index="${i}" class="detail-photo" onclick="event.stopPropagation();viewPhoto(${i})">`).join('')}
                             </div>
                         </div>
-                        ` : '<div class="detail-section"><div class="detail-empty"><div class="detail-empty-icon">📷</div>Нет фото</div>'}
                         
-                        ${videos.length > 0 ? `
+                        ${photoList.length > 0 ? `
                         <div class="detail-section">
-                            <h3>🎬 Видео <span class="count">${videos.length}</span></h3>
-                            <div class="detail-gallery videos">
-                                ${videos.map(v => `<video src="/uploads/${folder}/videos/${v}" controls playsinline preload="metadata"></video>`).join('')}
+                            <h3>📷 Фото <span class="count">${photoList.length}</span></h3>
+                            <div class="detail-media-carousel" id="detailCarousel">
+                                <div class="detail-media-carousel-track" id="detailCarouselTrack">
+                                    ${photoList.map(src => `<img src="${src}" onclick="event.stopPropagation();openFullscreen('${src}', photoListGlobal)">`).join('')}
+                                </div>
+                                ${photoList.length > 1 ? `
+                                <button class="detail-media-carousel-nav prev" onclick="detailCarouselPrev(event)">❮</button>
+                                <button class="detail-media-carousel-nav next" onclick="detailCarouselNext(event)">❯</button>
+                                <div class="detail-media-carousel-dots" id="detailCarouselDots">
+                                    ${photoList.map((_, i) => `<div class="detail-media-carousel-dot ${i===0?'active':''}" onclick="detailCarouselGo(event, ${i})"></div>`).join('')}
+                                </div>
+                                <div class="detail-media-carousel-counter" id="detailCarouselCounter">1 / ${photoList.length}</div>
+                                ` : ''}
+                            </div>
+                        </div>
+                        ` : ''}
+                        
+                        ${videoList.length > 0 ? `
+                        <div class="detail-section">
+                            <h3>🎬 Видео <span class="count">${videoList.length}</span></h3>
+                            <div class="detail-video-carousel" id="detailVideoCarousel">
+                                <div class="detail-video-carousel-track" id="detailVideoCarouselTrack">
+                                    ${videoList.map(src => `<video src="${src}" controls playsinline preload="metadata"></video>`).join('')}
+                                </div>
+                                ${videoList.length > 1 ? `
+                                <button class="detail-video-carousel-nav prev" onclick="detailVideoCarouselPrev(event)">❮</button>
+                                <button class="detail-video-carousel-nav next" onclick="detailVideoCarouselNext(event)">❯</button>
+                                <div class="detail-video-carousel-dots" id="detailVideoCarouselDots">
+                                    ${videoList.map((_, i) => `<div class="detail-video-carousel-dot ${i===0?'active':''}" onclick="detailVideoCarouselGo(event, ${i})"></div>`).join('')}
+                                </div>
+                                <div class="detail-video-carousel-counter" id="detailVideoCarouselCounter">1 / ${videoList.length}</div>
+                                ` : ''}
                             </div>
                         </div>
                         ` : ''}
@@ -453,6 +492,73 @@
             return mb.toFixed(1) + ' МБ';
         }
 
+        let detailCarouselIndex = 0;
+        let detailVideoCarouselIndex = 0;
+        let photoListGlobal = [];
+        let videoListGlobal = [];
+        
+        function detailCarouselPrev(e) {
+            if (e) e.stopPropagation();
+            const list = photoListGlobal || [];
+            if (list.length === 0) return;
+            detailCarouselIndex = detailCarouselIndex > 0 ? detailCarouselIndex - 1 : list.length - 1;
+            detailCarouselUpdate();
+        }
+        
+        function detailCarouselNext(e) {
+            if (e) e.stopPropagation();
+            const list = photoListGlobal || [];
+            if (list.length === 0) return;
+            detailCarouselIndex = (detailCarouselIndex + 1) % list.length;
+            detailCarouselUpdate();
+        }
+        
+        function detailCarouselGo(e, index) {
+            if (e) e.stopPropagation();
+            detailCarouselIndex = index;
+            detailCarouselUpdate();
+        }
+        
+        function detailCarouselUpdate() {
+            const track = document.getElementById('detailCarouselTrack');
+            const dots = document.querySelectorAll('.detail-media-carousel-dot');
+            const counter = document.getElementById('detailCarouselCounter');
+            if (track) track.style.transform = `translateX(-${detailCarouselIndex * 100}%)`;
+            dots.forEach((dot, i) => dot.classList.toggle('active', i === detailCarouselIndex));
+            if (counter) counter.textContent = `${detailCarouselIndex + 1} / ${photoListGlobal.length}`;
+        }
+        
+        function detailVideoCarouselPrev(e) {
+            if (e) e.stopPropagation();
+            const list = videoListGlobal || [];
+            if (list.length === 0) return;
+            detailVideoCarouselIndex = detailVideoCarouselIndex > 0 ? detailVideoCarouselIndex - 1 : list.length - 1;
+            detailVideoCarouselUpdate();
+        }
+        
+        function detailVideoCarouselNext(e) {
+            if (e) e.stopPropagation();
+            const list = videoListGlobal || [];
+            if (list.length === 0) return;
+            detailVideoCarouselIndex = (detailVideoCarouselIndex + 1) % list.length;
+            detailVideoCarouselUpdate();
+        }
+        
+        function detailVideoCarouselGo(e, index) {
+            if (e) e.stopPropagation();
+            detailVideoCarouselIndex = index;
+            detailVideoCarouselUpdate();
+        }
+        
+        function detailVideoCarouselUpdate() {
+            const track = document.getElementById('detailVideoCarouselTrack');
+            const dots = document.querySelectorAll('.detail-video-carousel-dot');
+            const counter = document.getElementById('detailVideoCarouselCounter');
+            if (track) track.style.transform = `translateX(-${detailVideoCarouselIndex * 100}%)`;
+            dots.forEach((dot, i) => dot.classList.toggle('active', i === detailVideoCarouselIndex));
+            if (counter) counter.textContent = `${detailVideoCarouselIndex + 1} / ${videoListGlobal.length}`;
+        }
+
         function renderModels(models) {
             $('modelsGrid').innerHTML = models.length 
                 ? models.map(m => {
@@ -460,25 +566,11 @@
                     const videos = m.videos || [];
                     const totalPhotos = photos.length;
                     const totalVideos = videos.length;
-                    const totalMedia = totalPhotos + totalVideos;
                     const folder = m.modelFolder || m.id;
-                    const cover = photos[0] ? '/uploads/' + folder + '/photo/' + photos[0].name : (videos[0] ? '/uploads/' + folder + '/videos/' + videos[0].name : null);
                     const totalSize = photos.reduce((s,p)=>s+(p.size||0),0) + videos.reduce((s,v)=>s+(v.size||0),0);
-                    const category = m.category || '';
-                    const description = m.description || '';
-                    const tags = m.tags || [];
                     
                     return `
                     <div class="model-card" onclick="viewModel(${m.id})">
-                        <div class="card-cover">
-                            ${cover ? `<img src="${cover}" alt="${escapeHtml(m.name)}">` : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:48px;opacity:0.2">📷</div>'}
-                            <div class="card-cover-overlay"></div>
-                            <div class="card-cover-badges">
-                                ${totalPhotos > 0 ? `<span class="card-cover-badge">📷 ${totalPhotos}</span>` : ''}
-                                ${totalVideos > 0 ? `<span class="card-cover-badge">🎬 ${totalVideos}</span>` : ''}
-                            </div>
-                            ${totalMedia > 1 ? `<span class="card-cover-more">+${totalMedia - 1}</span>` : ''}
-                        </div>
                         <div class="card-info">
                             <div class="card-header">
                                 ${m.avatar ? `<img src="/uploads/${folder}/ava/${m.avatar}" class="card-avatar">` : '<div class="card-avatar-placeholder">👤</div>'}
@@ -487,6 +579,8 @@
                                 </div>
                             </div>
                             <div class="card-stats">
+                                <span>📷 ${totalPhotos}</span>
+                                <span>🎬 ${totalVideos}</span>
                                 <span>💾 ${formatSize(totalSize)}</span>
                             </div>
                         </div>
@@ -669,9 +763,7 @@
         }
 
         function viewPhoto(index) {
-            // Only use photos from mediaList (first part)
-            const photoCount = window.currentPhotos.length;
-            fsList = window.mediaList.slice(0, photoCount);
+            fsList = photoListGlobal;
             fsIndex = index;
             showFullscreen();
             $('fullscreenViewer').classList.add('active');
@@ -712,18 +804,15 @@
             form.set('social_links', '[]');
 
             const url = window.editingId ? `/api/models/${window.editingId}` : '/api/models';
-            console.log('Save:', url, 'method:', window.editingId ? 'PUT' : 'POST', 'editingId:', window.editingId);
+            
             try {
                 const res = await fetch(url, { method: window.editingId ? 'PUT' : 'POST', body: form });
-                console.log('Save response:', res.status, res.ok);
                 if (!res.ok) {
                     const err = await res.json();
-                    console.error('Save error:', err);
                     alert(err.error || 'Ошибка');
                     return;
                 }
             } catch (e) {
-                console.error('Save fetch error:', e);
                 alert('Ошибка сети');
                 return;
             }
