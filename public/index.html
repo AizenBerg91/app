@@ -467,7 +467,7 @@
             const params = new URLSearchParams();
             const search = $('search').value;
             if (search) params.set('search', search);
-            if (currentSort) params.set('sort', currentSort);
+            params.set('sort', currentSort);
             if (currentPage > 1) params.set('page', currentPage);
             if (window.selectedTags.length > 0) params.set('tag', window.selectedTags.join(','));
             

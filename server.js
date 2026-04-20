@@ -222,17 +222,23 @@ app.get('/api/models', (req, res) => {
     };
 
     res.json({
-        data: models.map(m => ({
-            ...m,
-            name: escapeHtml(m.name),
-            social_links: parseJson(m.social_links),
-            views: m.views || 0,
-            created_at: m.created_at,
-            modelFolder: sanitizeFolderName(m.name),
-            photos: parseJson(m.photos).map(p => ({ name: p, size: getFileSize(path.join(UPLOADS_DIR, sanitizeFolderName(m.name), 'photo'), p) })),
-            videos: parseJson(m.videos).map(v => ({ name: v, size: getFileSize(path.join(UPLOADS_DIR, sanitizeFolderName(m.name), 'videos'), v) })),
-            tags: parseJson(m.tags)
-        })),
+        data: models.map(m => {
+            const folder = sanitizeFolderName(m.name);
+            const sz = (m.avatar ? getFileSize(path.join(UPLOADS_DIR, folder, 'ava'), m.avatar) : 0) +
+                parseJson(m.photos).reduce((s, p) => s + getFileSize(path.join(UPLOADS_DIR, folder, 'photo'), p), 0) +
+                parseJson(m.videos).reduce((s, v) => s + getFileSize(path.join(UPLOADS_DIR, folder, 'videos'), v), 0);
+            return {
+                ...m,
+                name: escapeHtml(m.name),
+                social_links: parseJson(m.social_links),
+                views: m.views || 0,
+                created_at: m.created_at,
+                modelFolder: folder,
+                photos: parseJson(m.photos).map(p => ({ name: p, size: getFileSize(path.join(UPLOADS_DIR, folder, 'photo'), p) })),
+                videos: parseJson(m.videos).map(v => ({ name: v, size: getFileSize(path.join(UPLOADS_DIR, folder, 'videos'), v) })),
+                tags: parseJson(m.tags)
+            };
+        }),
         total,
         page: pageNum,
         limit: limitNum,
@@ -254,6 +260,11 @@ app.get('/api/models/:id', (req, res) => {
     const modelFolder = sanitizeFolderName(model.name);
     const photos = parseJson(model.photos);
     const videos = parseJson(model.videos);
+
+    let totalSize = 0;
+    if (model.avatar) totalSize += getFileSize(path.join(UPLOADS_DIR, modelFolder, 'ava'), model.avatar);
+    photos.forEach(p => totalSize += getFileSize(path.join(UPLOADS_DIR, modelFolder, 'photo'), p));
+    videos.forEach(v => totalSize += getFileSize(path.join(UPLOADS_DIR, modelFolder, 'videos'), v));
 
     res.json({
         ...model,
