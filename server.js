@@ -34,18 +34,12 @@ db.exec(`
         photos TEXT DEFAULT '[]',
         videos TEXT DEFAULT '[]',
         tags TEXT DEFAULT '[]',
-        description TEXT DEFAULT '',
         social_links TEXT DEFAULT '[]',
-        category TEXT DEFAULT '',
         views INTEGER DEFAULT 0,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
 `);
-
-["description", "social_links", "category"].forEach(col => {
-    try { db.exec(`ALTER TABLE models ADD COLUMN ${col} TEXT DEFAULT '';`); } catch {}
-});
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -76,8 +70,7 @@ const storage = multer.diskStorage({
     filename: (req, file, cb) => {
         const ext = path.extname(file.originalname);
         const baseName = path.basename(file.originalname, ext).replace(/[^a-zA-Z0-9\u0400-\u04FFа-яА-ЯёЁ\-\_]/g, '_').substring(0, 100);
-        const uniqueSuffix = Date.now();
-        cb(null, baseName + '_' + uniqueSuffix + ext);
+        cb(null, baseName + ext);
     }
 });
 
@@ -197,9 +190,16 @@ app.get('/api/models', (req, res) => {
         params.push(safeSearch, safeSearch);
     }
     if (tag) {
-        const safeTag = `%${escapeSqlLike(tag)}%`;
-        conditions.push('tags LIKE ?');
-        params.push(safeTag);
+        const tags = tag.split(',').map(t => t.trim());
+        if (tags.length === 1) {
+            const safeTag = `%${escapeSqlLike(tags[0])}%`;
+            conditions.push('tags LIKE ?');
+            params.push(safeTag);
+        } else {
+            const tagConditions = tags.map(() => 'tags LIKE ?').join(' OR ');
+            conditions.push('(' + tagConditions + ')');
+            tags.forEach(t => params.push(`%${escapeSqlLike(t)}%`));
+        }
     }
     if (conditions.length) query += ' WHERE ' + conditions.join(' AND ');
 
@@ -225,9 +225,7 @@ app.get('/api/models', (req, res) => {
         data: models.map(m => ({
             ...m,
             name: escapeHtml(m.name),
-            description: m.description || '',
             social_links: parseJson(m.social_links),
-            category: m.category || '',
             views: m.views || 0,
             created_at: m.created_at,
             modelFolder: sanitizeFolderName(m.name),
@@ -261,9 +259,7 @@ app.get('/api/models/:id', (req, res) => {
         ...model,
         name: escapeHtml(model.name),
         avatar: model.avatar,
-        description: model.description || '',
         social_links: parseJson(model.social_links),
-        category: model.category || '',
         views: model.views || 0,
         created_at: model.created_at,
         modelFolder: modelFolder,
@@ -309,7 +305,6 @@ app.post('/api/models', upload.fields([
         const convertPromises = legacyVideos.map(async (f) => {
             try {
                 const converted = await convertVideo(f.path, videosDir, 'mp4');
-                videos.push(converted);
                 if (fs.existsSync(f.path)) fs.unlinkSync(f.path);
                 return converted;
             } catch (err) {
@@ -319,20 +314,16 @@ app.post('/api/models', upload.fields([
         });
 
         const convertedVideos = await Promise.all(convertPromises);
-        convertedVideos.filter(Boolean).forEach(v => {
-            if (!videos.includes(v)) videos.push(v);
-        });
+        convertedVideos.filter(Boolean).forEach(v => videos.push(v));
     }
 
     const tagsArray = tags ? parseJson(tags) : [];
-    const description = String(req.body.description || '');
     const socialLinks = req.body.social_links ? parseJson(req.body.social_links) : [];
-    const category = String(req.body.category || '');
 
     const result = db.prepare(`
-        INSERT INTO models (name, avatar, tags, videos, photos, description, social_links, category)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(name.trim(), avatar, JSON.stringify(tagsArray), JSON.stringify(videos), JSON.stringify(photos), description, JSON.stringify(socialLinks), category);
+        INSERT INTO models (name, avatar, tags, videos, photos, social_links)
+        VALUES (?, ?, ?, ?, ?, ?)
+    `).run(name.trim(), avatar, JSON.stringify(tagsArray), JSON.stringify(videos), JSON.stringify(photos), JSON.stringify(socialLinks));
 
     const newId = result.lastInsertRowid;
     const modelFolder = sanitizeFolderName(name.trim());
@@ -415,7 +406,6 @@ app.put('/api/models/:id', upload.fields([
         const convertPromises = legacyVideos.map(async (f) => {
             try {
                 const converted = await convertVideo(f.path, videosDir, 'mp4');
-                newVideos.push(converted);
                 if (fs.existsSync(f.path)) fs.unlinkSync(f.path);
                 return converted;
             } catch (err) {
@@ -425,9 +415,7 @@ app.put('/api/models/:id', upload.fields([
         });
 
         const convertedVideos = await Promise.all(convertPromises);
-        convertedVideos.filter(Boolean).forEach(v => {
-            if (!newVideos.includes(v)) newVideos.push(v);
-        });
+        convertedVideos.filter(Boolean).forEach(v => newVideos.push(v));
     }
     
     const photosArray = newPhotos.length > 0 ? newPhotos : oldPhotos;
@@ -449,10 +437,12 @@ app.put('/api/models/:id', upload.fields([
         fs.renameSync(oldPath, newPath);
     }
 
+    const socialLinks = req.body.social_links !== undefined ? parseJson(req.body.social_links) : parseJson(model.social_links);
+
     db.prepare(`
-        UPDATE models SET name = ?, avatar = ?, tags = ?, videos = ?, photos = ?, updated_at = CURRENT_TIMESTAMP
+        UPDATE models SET name = ?, avatar = ?, tags = ?, videos = ?, photos = ?, social_links = ?, updated_at = CURRENT_TIMESTAMP
         WHERE id = ?
-    `).run(newName, avatar, JSON.stringify(tagsArray), JSON.stringify(videosArray), JSON.stringify(photosArray), id);
+    `).run(newName, avatar, JSON.stringify(tagsArray), JSON.stringify(videosArray), JSON.stringify(photosArray), JSON.stringify(socialLinks), id);
 
     res.json({ 
         id,

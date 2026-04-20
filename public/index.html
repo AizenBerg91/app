@@ -59,7 +59,14 @@
         .btn-sm { padding: 8px 14px; font-size: 13px; }
         
         .container { display: flex; min-height: calc(100vh - 65px); }
-        
+
+        .sidebar { width: 240px; background: var(--card-bg); border-right: 1px solid var(--border); padding: 20px; overflow-y: auto; flex-shrink: 0; }
+        .sidebar-title { font-size: 14px; font-weight: 600; color: var(--text-muted); margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .tag-filter { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+        .tag-filter-btn { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 6px 12px; font-size: 12px; color: var(--text-muted); cursor: pointer; transition: all 0.2s; }
+        .tag-filter-btn:hover { border-color: var(--accent); color: var(--text); }
+        .tag-filter-btn.active { background: var(--accent); border-color: var(--accent); color: white; }
+        .sidebar-section { margin-bottom: 24px; }
 
         .main { flex: 1; padding: 24px; }
         
@@ -75,16 +82,12 @@
          
         .card-info { padding: 32px 20px; flex: 1; display: flex; flex-direction: column; align-items: center; text-align: center; }
         .card-header { display: flex; flex-direction: column; align-items: center; gap: 14px; margin-bottom: 16px; }
-        .card-avatar { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 4px solid var(--accent); box-shadow: var(--shadow-md); flex-shrink: 0; }
-        .card-avatar-placeholder { width: 100px; height: 100px; border-radius: 50%; background: var(--secondary); display: flex; align-items: center; justify-content: center; border: 4px solid var(--border); font-size: 40px; flex-shrink: 0; }
+        .card-avatar { width: 200px; height: 200px; border-radius: 50%; object-fit: cover; border: 5px solid var(--accent); box-shadow: var(--shadow-xl); flex-shrink: 0; }
+        .card-avatar-placeholder { width: 200px; height: 200px; border-radius: 50%; background: var(--secondary); display: flex; align-items: center; justify-content: center; border: 5px solid var(--border); font-size: 80px; flex-shrink: 0; }
         .card-title { flex: 1; min-width: 0; }
         .card-name { font-size: 20px; font-weight: 700; }
-        .card-category { font-size: 11px; color: var(--accent); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-        
-        .card-description { font-size: 13px; color: var(--text-muted); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 12px; flex: 1; }
-        
         .card-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
-        .card-tag { background: var(--bg); padding: 4px 10px; border-radius: 12px; font-size: 11px; color: var(--text-muted); border: 1px solid var(--border); }
+        .card-tag { background: var(--bg); padding: 8px 16px; border-radius: 14px; font-size: 14px; color: var(--text-muted); border: 1px solid var(--border); }
         
         .card-stats { display: flex; gap: 12px; border-top: 1px solid var(--border); padding-top: 14px; }
         .card-stats span { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-muted); }
@@ -125,7 +128,7 @@
         
         .modal-overlay { position: fixed; inset: 0; background: var(--bg); display: none; align-items: center; justify-content: center; z-index: 200; padding: 0; }
         .modal-overlay.active { display: flex; }
-        .modal { background: var(--card-bg); border-radius: var(--radius-xl); padding: 32px; width: 95%; max-width: 1000px; max-height: 95vh; overflow-y: auto; border: 1px solid var(--border); box-shadow: var(--shadow-xl); }
+        .modal { background: var(--card-bg); border-radius: var(--radius-xl); padding: 32px; width: 95%; max-width: 1400px; max-height: 100vh; height: 100vh; overflow-y: auto; border: 1px solid var(--border); box-shadow: var(--shadow-xl); }
         .modal::-webkit-scrollbar { width: 8px; }
         .modal::-webkit-scrollbar-track { background: var(--bg); }
         .modal::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
@@ -147,6 +150,8 @@
         .model-form .file-item { padding: 4px 8px; font-size: 11px; }
         .model-form .form-row.cols-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
         .model-form .form-group input, .model-form .form-group textarea { width: 100%; padding: 14px 16px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg); color: var(--text); font-size: 15px; transition: all 0.2s; }
+        .model-form .form-group input[type="text"] { padding: 10px 12px; font-size: 14px; border-radius: var(--radius-sm); }
+        .model-form textarea { resize: vertical; min-height: 80px; }
         .model-form .form-group input::placeholder { color: var(--text-muted); opacity: 0.6; }
         .model-form .upload-zone { padding: 32px; }
         .model-form .upload-zone .upload-icon { font-size: 36px; }
@@ -164,6 +169,8 @@
         .file-item span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .file-item button { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 16px; }
         .file-item button:hover { color: var(--accent); }
+
+        .file-item input[type="text"] { background: var(--secondary); border: 1px solid var(--border); padding: 6px 8px; border-radius: 4px; color: var(--text); font-size: 12px; }
         
         
         
@@ -192,17 +199,17 @@
         .detail-view { display: flex; flex-direction: column; background: var(--bg); }
         .detail-content { flex: 1; overflow-y: auto; padding: 24px; max-width: 1400px; margin: 0 auto; width: 100%; }
         
-        .detail-hero { display: flex; gap: 40px; align-items: flex-start; margin-bottom: 40px; flex-wrap: wrap; justify-content: center; }
+        .detail-hero { display: flex; gap: 60px; align-items: center; margin-bottom: 40px; flex-wrap: wrap; justify-content: center; padding: 40px; }
         .detail-hero-avatar { position: relative; flex-shrink: 0; }
-        .detail-hero-avatar img { width: 280px; height: 280px; border-radius: 50%; object-fit: cover; border: 5px solid var(--accent); box-shadow: var(--shadow-xl); cursor: pointer; transition: all 0.3s; }
+        .detail-hero-avatar img { width: 350px; height: 350px; border-radius: 50%; object-fit: cover; border: 6px solid var(--accent); box-shadow: var(--shadow-xl); cursor: pointer; transition: all 0.3s; }
         .detail-hero-avatar img:hover { transform: scale(1.03); box-shadow: 0 0 0 8px rgba(233,69,96,0.2), var(--shadow-xl); }
-        .detail-hero-noavatar { width: 280px; height: 280px; border-radius: 50%; background: var(--secondary); display: flex; align-items: center; justify-content: center; border: 5px solid var(--border); font-size: 100px; }
-        
-        .detail-hero-media { flex: 1; min-width: 300px; }
-        
-        .detail-media-carousel { position: relative; width: 100%; max-width: 600px; margin: 0 auto; border-radius: var(--radius-xl); overflow: hidden; background: #000; }
+        .detail-hero-noavatar { width: 350px; height: 350px; border-radius: 50%; background: var(--secondary); display: flex; align-items: center; justify-content: center; border: 6px solid var(--border); font-size: 140px; }
+
+        .detail-hero-media { flex: 1; min-width: 400px; }
+
+        .detail-media-carousel { position: relative; width: 100%; max-width: 900px; margin: 0 auto; border-radius: var(--radius-xl); overflow: hidden; background: #000; }
         .detail-media-carousel-track { display: flex; transition: transform 0.5s ease; }
-        .detail-media-carousel-track img, .detail-media-carousel-track video { width: 100%; aspect-ratio: 1; object-fit: contain; flex-shrink: 0; background: #000; }
+        .detail-media-carousel-track img, .detail-media-carousel-track video { width: 100%; aspect-ratio: 16/10; object-fit: contain; flex-shrink: 0; background: #000; max-height: 70vh; }
         .detail-media-carousel-nav { position: absolute; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; background: rgba(255,255,255,0.15); border: none; border-radius: 50%; color: white; font-size: 20px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
         .detail-media-carousel-nav:hover { background: var(--accent); }
         .detail-media-carousel-nav.prev { left: 12px; }
@@ -212,7 +219,7 @@
         .detail-media-carousel-dot.active { background: white; width: 24px; border-radius: 4px; }
 .detail-media-carousel-counter { position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.6); padding: 6px 12px; border-radius: 16px; font-size: 13px; color: white; }
         
-        .detail-video-carousel { position: relative; width: 100%; max-width: 600px; margin: 0 auto; border-radius: var(--radius-xl); overflow: hidden; background: #000; }
+        .detail-video-carousel { position: relative; width: 100%; max-width: 1100px; margin: 0 auto; border-radius: 16px; overflow: hidden; background: #000; }
         .detail-video-carousel-track { display: flex; transition: transform 0.5s ease; }
         .detail-video-carousel-track video { width: 100%; aspect-ratio: 16/9; object-fit: contain; flex-shrink: 0; background: #000; }
         .detail-video-carousel-nav { position: absolute; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; background: rgba(255,255,255,0.15); border: none; border-radius: 50%; color: white; font-size: 20px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
@@ -225,13 +232,13 @@
         .detail-video-carousel-counter { position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.6); padding: 6px 12px; border-radius: 16px; font-size: 13px; color: white; z-index: 10; }
          
         .detail-hero-media { flex: 1; min-width: 300px; }
-        .detail-hero-name { font-size: 42px; font-weight: 800; margin-bottom: 20px; letter-spacing: -0.5px; line-height: 1.1; text-align: center; }
-         
-        .detail-hero-stats { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; margin-top: 20px; }
-        .detail-hero-stat { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px 24px; display: flex; align-items: center; gap: 12px; min-width: 120px; }
-        .detail-hero-stat-icon { width: 44px; height: 44px; background: var(--secondary); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
-        .detail-hero-stat-value { font-size: 22px; font-weight: 700; }
-        .detail-hero-stat-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        .detail-hero-name { font-size: 56px; font-weight: 800; margin-bottom: 24px; letter-spacing: -0.5px; line-height: 1.1; text-align: center; }
+
+        .detail-hero-stats { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; margin-top: 24px; }
+        .detail-hero-stat { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px 32px; display: flex; align-items: center; gap: 16px; min-width: 140px; }
+        .detail-hero-stat-icon { width: 56px; height: 56px; background: var(--secondary); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+        .detail-hero-stat-value { font-size: 28px; font-weight: 700; }
+        .detail-hero-stat-label { font-size: 14px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
          
         .detail-section { margin: 32px 0; background: var(--card-bg); border-radius: var(--radius-xl); padding: 28px; border: 1px solid var(--border); }
         .detail-section h3 { font-size: 18px; color: var(--text-muted); margin-bottom: 20px; text-transform: uppercase; font-weight: 600; letter-spacing: 1px; display: flex; align-items: center; gap: 10px; }
@@ -261,7 +268,8 @@
         @media (max-width: 768px) {
             header { flex-wrap: wrap; gap: 12px; }
             .search-box { order: 3; max-width: 100%; width: 100%; }
-            .sidebar { display: none; }
+            .sidebar { position: fixed; left: -260px; top: 64px; height: calc(100vh - 64px); z-index: 50; transition: left 0.3s; }
+            .sidebar.open { left: 0; }
             .models-grid { grid-template-columns: 1fr; }
             .modal { padding: 20px; }
         }
@@ -287,7 +295,13 @@
     </header>
 
     <div class="container">
-        
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-title">Теги</div>
+                <div class="tag-filter" id="tagFilters"></div>
+                <button class="btn btn-secondary btn-sm" id="clearTagsBtn" style="margin-top:8px;width:100%;display:none;" onclick="clearTags()">Очистить</button>
+            </div>
+        </aside>
         <main class="main"><div class="models-grid" id="modelsGrid"></div></main>
     </div>
 
@@ -353,7 +367,11 @@
             window.detailVideoCarouselPrev = detailVideoCarouselPrev;
             window.detailVideoCarouselNext = detailVideoCarouselNext;
             window.detailVideoCarouselGo = detailVideoCarouselGo;
-            
+            window.selectTag = selectTag;
+            window.clearTags = clearTags;
+
+            window.selectedTags = [];
+            loadTags();
             loadModels();
             $('search').oninput = debounce(loadModels, 300);
         }
@@ -374,8 +392,8 @@
             const m = await (await fetch('/api/models/' + id)).json();
             if (!m) return;
             
-            const photos = (m.photos || []).map(p => typeof p === 'object' ? p.name : (p || ''));
-            const videos = (m.videos || []).map(v => typeof v === 'object' ? v.name : (v || ''));
+            const photos = (m.photos || []).map(p => typeof p === 'object' ? p.name : p).filter(Boolean);
+            const videos = (m.videos || []).map(v => typeof v === 'object' ? v.name : v).filter(Boolean);
             const folder = m.modelFolder || m.id;
             const photoList = photos.map(p => '/uploads/' + folder + '/photo/' + p);
             const videoList = videos.map(v => '/uploads/' + folder + '/videos/' + v);
@@ -389,81 +407,57 @@
             detailCarouselIndex = 0;
             detailVideoCarouselIndex = 0;
             
+            const tags = m.tags || [];
+            const socialLinks = m.social_links || [];
             $('modalContent').innerHTML = `
                 <button class="close-modal-btn" onclick="closeModal()">×</button>
-                <div class="detail-view">
-                    <div class="detail-content">
-                        <div class="detail-hero">
-                            <div class="detail-hero-media">
-                                <h1 class="detail-hero-name">${escapeHtml(m.name)}</h1>
-                                <div class="detail-hero-stats">
-                                    <div class="detail-hero-stat">
-                                        <div class="detail-hero-stat-icon">📷</div>
-                                        <div>
-                                            <div class="detail-hero-stat-value">${photos.length}</div>
-                                            <div class="detail-hero-stat-label">Фото</div>
-                                        </div>
-                                    </div>
-                                    <div class="detail-hero-stat">
-                                        <div class="detail-hero-stat-icon">🎬</div>
-                                        <div>
-                                            <div class="detail-hero-stat-value">${videos.length}</div>
-                                            <div class="detail-hero-stat-label">Видео</div>
-                                        </div>
-                                    </div>
-                                    <div class="detail-hero-stat">
-                                        <div class="detail-hero-stat-icon">💾</div>
-                                        <div>
-                                            <div class="detail-hero-stat-value">${formatSize(totalSize)}</div>
-                                            <div class="detail-hero-stat-label">Размер</div>
-                                        </div>
-                                    </div>
+                <div style="max-width:1200px;margin:0 auto;padding:40px;">
+                    <div style="display:flex;gap:48px;align-items:center;justify-content:center;margin-bottom:40px;flex-wrap:wrap;">
+                        ${photoList[0] ? `<img src="${photoList[0]}" style="width:320px;height:320px;object-fit:cover;border-radius:20px;border:5px solid var(--accent);cursor:pointer;box-shadow:var(--shadow-lg);" onclick="openFullscreen('${photoList[0]}', photoListGlobal)">` : (videoList[0] ? `<video src="${videoList[0]}" controls style="width:320px;height:320px;object-fit:cover;border-radius:20px;border:5px solid var(--accent);box-shadow:var(--shadow-lg);"></video>` : `<div style="width:320px;height:320px;border-radius:20px;background:var(--secondary);display:flex;align-items:center;justify-content:center;border:5px solid var(--border);font-size:120px;">👤</div>`)}
+                        <div style="text-align:center;">
+                            <h1 style="font-size:48px;font-weight:800;margin-bottom:20px;">${escapeHtml(m.name)}</h1>
+                            ${tags.length ? `<div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:24px;">${tags.map(t => `<span style="background:var(--bg);padding:8px 16px;border-radius:14px;font-size:14px;color:var(--text-muted);border:1px solid var(--border);">${escapeHtml(t)}</span>`).join('')}</div>` : ''}
+                            <div style="display:flex;gap:16px;justify-content:center;">
+                                <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:16px;padding:16px 28px;display:flex;align-items:center;gap:12px;">
+                                    <span style="font-size:22px;">📷</span>
+                                    <div><div style="font-size:24px;font-weight:700;">${photos.length}</div><div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;">Фото</div></div>
+                                </div>
+                                <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:16px;padding:16px 28px;display:flex;align-items:center;gap:12px;">
+                                    <span style="font-size:22px;">🎬</span>
+                                    <div><div style="font-size:24px;font-weight:700;">${videos.length}</div><div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;">Видео</div></div>
+                                </div>
+                                <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:16px;padding:16px 28px;display:flex;align-items:center;gap:12px;">
+                                    <span style="font-size:22px;">💾</span>
+                                    <div><div style="font-size:24px;font-weight:700;">${formatSize(totalSize)}</div><div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;">Размер</div></div>
                                 </div>
                             </div>
                         </div>
-                        
-                        ${photoList.length > 0 ? `
-                        <div class="detail-section">
-                            <h3>📷 Фото <span class="count">${photoList.length}</span></h3>
-                            <div class="detail-media-carousel" id="detailCarousel">
-                                <div class="detail-media-carousel-track" id="detailCarouselTrack">
-                                    ${photoList.map(src => `<img src="${src}" onclick="event.stopPropagation();openFullscreen('${src}', photoListGlobal)">`).join('')}
-                                </div>
-                                ${photoList.length > 1 ? `
-                                <button class="detail-media-carousel-nav prev" onclick="detailCarouselPrev(event)">❮</button>
-                                <button class="detail-media-carousel-nav next" onclick="detailCarouselNext(event)">❯</button>
-                                <div class="detail-media-carousel-dots" id="detailCarouselDots">
-                                    ${photoList.map((_, i) => `<div class="detail-media-carousel-dot ${i===0?'active':''}" onclick="detailCarouselGo(event, ${i})"></div>`).join('')}
-                                </div>
-                                <div class="detail-media-carousel-counter" id="detailCarouselCounter">1 / ${photoList.length}</div>
-                                ` : ''}
+                    </div>
+                    ${socialLinks.length ? `
+                    <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-bottom:32px;">
+                        ${socialLinks.map(s => `<a href="${escapeHtml(s.url)}" target="_blank" style="background:var(--secondary);border:1px solid var(--border);border-radius:12px;padding:10px 20px;color:var(--text);text-decoration:none;font-size:14px;">${escapeHtml(s.platform)}</a>`).join('')}
+                    </div>
+                    ` : ''}
+                    ${videoList.length > 0 ? `
+                    <div style="margin-bottom:32px;">
+                        <div class="detail-video-carousel" id="detailVideoCarousel">
+                            <div class="detail-video-carousel-track" id="detailVideoCarouselTrack">
+                                ${videoList.map(src => `<video src="${src}" controls playsinline preload="metadata" style="width:100%;aspect-ratio:16/10;background:#000;border-radius:16px;"></video>`).join('')}
                             </div>
-                        </div>
-                        ` : ''}
-                        
-                        ${videoList.length > 0 ? `
-                        <div class="detail-section">
-                            <h3>🎬 Видео <span class="count">${videoList.length}</span></h3>
-                            <div class="detail-video-carousel" id="detailVideoCarousel">
-                                <div class="detail-video-carousel-track" id="detailVideoCarouselTrack">
-                                    ${videoList.map(src => `<video src="${src}" controls playsinline preload="metadata"></video>`).join('')}
-                                </div>
-                                ${videoList.length > 1 ? `
-                                <button class="detail-video-carousel-nav prev" onclick="detailVideoCarouselPrev(event)">❮</button>
-                                <button class="detail-video-carousel-nav next" onclick="detailVideoCarouselNext(event)">❯</button>
-                                <div class="detail-video-carousel-dots" id="detailVideoCarouselDots">
-                                    ${videoList.map((_, i) => `<div class="detail-video-carousel-dot ${i===0?'active':''}" onclick="detailVideoCarouselGo(event, ${i})"></div>`).join('')}
-                                </div>
-                                <div class="detail-video-carousel-counter" id="detailVideoCarouselCounter">1 / ${videoList.length}</div>
-                                ` : ''}
+                            ${videoList.length > 1 ? `
+                            <button class="detail-video-carousel-nav prev" onclick="detailVideoCarouselPrev(event)">❮</button>
+                            <button class="detail-video-carousel-nav next" onclick="detailVideoCarouselNext(event)">❯</button>
+                            <div class="detail-video-carousel-dots" id="detailVideoCarouselDots">
+                                ${videoList.map((_, i) => `<div class="detail-video-carousel-dot ${i===0?'active':''}" onclick="detailVideoCarouselGo(event, ${i})"></div>`).join('')}
                             </div>
+                            <div class="detail-video-carousel-counter" id="detailVideoCarouselCounter">1 / ${videoList.length}</div>
+                            ` : ''}
                         </div>
-                        ` : ''}
-                        
-                        <div class="detail-actions">
-                            <button class="btn btn-primary" onclick="closeModal();openById(${m.id})">✏️ Редактировать</button>
-                            <button class="btn btn-danger" onclick="closeModal();confirmDelete(${m.id})">🗑️ Удалить</button>
-                        </div>
+                    </div>
+                    ` : ''}
+                    <div style="display:flex;gap:16px;justify-content:center;">
+                        <button style="background:linear-gradient(135deg,var(--accent),var(--accent-hover));color:white;border:none;border-radius:12px;padding:14px 32px;font-size:16px;font-weight:600;cursor:pointer;box-shadow:var(--shadow-md);" onclick="closeModal();openById(${m.id})">✏️ Редактировать</button>
+                        <button style="background:var(--danger);color:white;border:none;border-radius:12px;padding:14px 32px;font-size:16px;font-weight:600;cursor:pointer;" onclick="closeModal();confirmDelete(${m.id})">🗑️ Удалить</button>
                     </div>
                 </div>
             `;
@@ -475,6 +469,7 @@
             if (search) params.set('search', search);
             if (currentSort) params.set('sort', currentSort);
             if (currentPage > 1) params.set('page', currentPage);
+            if (window.selectedTags.length > 0) params.set('tag', window.selectedTags.join(','));
             
             const queryString = params.toString();
             const res = await fetch('/api/models' + (queryString ? '?' + queryString : ''));
@@ -568,7 +563,8 @@
                     const totalVideos = videos.length;
                     const folder = m.modelFolder || m.id;
                     const totalSize = photos.reduce((s,p)=>s+(p.size||0),0) + videos.reduce((s,v)=>s+(v.size||0),0);
-                    
+
+                    const tags = m.tags || [];
                     return `
                     <div class="model-card" onclick="viewModel(${m.id})">
                         <div class="card-info">
@@ -578,6 +574,7 @@
                                     <div class="card-name">${escapeHtml(m.name)}</div>
                                 </div>
                             </div>
+                            ${tags.length ? `<div class="card-tags">${tags.slice(0,3).map(t => `<span class="card-tag">${escapeHtml(t)}</span>`).join('')}</div>` : ''}
                             <div class="card-stats">
                                 <span>📷 ${totalPhotos}</span>
                                 <span>🎬 ${totalVideos}</span>
@@ -607,6 +604,41 @@
         function setPage(p) { currentPage = p; loadModels(); }
         function setSort(s) { currentSort = s; currentPage = 1; loadModels(); }
 
+        async function loadTags() {
+            const res = await fetch('/api/tags');
+            const tags = await res.json();
+            window.allTags = tags;
+            renderTagFilters();
+        }
+
+        function renderTagFilters() {
+            const container = $('tagFilters');
+            if (!container) return;
+            container.innerHTML = (window.allTags || []).map(t =>
+                `<button class="tag-filter-btn ${window.selectedTags.includes(t) ? 'active' : ''}" onclick="selectTag('${escapeHtml(t)}')">${escapeHtml(t)}</button>`
+            ).join('');
+            const clearBtn = $('clearTagsBtn');
+            if (clearBtn) clearBtn.style.display = window.selectedTags?.length ? 'block' : 'none';
+        }
+
+        function selectTag(tag) {
+            const idx = window.selectedTags.indexOf(tag);
+            if (idx >= 0) {
+                window.selectedTags.splice(idx, 1);
+            } else {
+                window.selectedTags.push(tag);
+            }
+            currentPage = 1;
+            renderTagFilters();
+            loadModels();
+        }
+
+        function clearTags() {
+            window.selectedTags = [];
+            renderTagFilters();
+            loadModels();
+        }
+
         function escapeHtml(str) {
             return str.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
         }
@@ -620,16 +652,26 @@
 
         function openModal(model = null) {
             window.editingId = model?.id || null;
-            window.existingPhotos = model?.photos || [];
-            window.existingVideos = model?.videos || [];
+            window.existingPhotos = (model?.photos || []).map(p => typeof p === 'object' ? p.name : p);
+            window.existingVideos = (model?.videos || []).map(v => typeof v === 'object' ? v.name : v);
             window.newPhotos = []; window.newVideos = [];
+            window.existingTags = model?.tags || [];
+            window.existingSocialLinks = model?.social_links || [];
 
             $('modalOverlay').classList.add('active');
             $('modalContent').innerHTML = `
                 <h2>${model?'✏️':'➕'}</h2>
                 <form onsubmit="save(event)" class="model-form">
                     <input type="hidden" name="modelId" value="${model?.id || '0'}">
-                    <div class="form-group"><input name="name" value="${model?.name||''}" required placeholder="Имя модели"></div>
+                    <div class="form-group"><input name="name" value="${escapeHtml(model?.name||'')}" required placeholder="Имя модели"></div>
+                    <div class="form-group">
+                        <label>Теги</label>
+                        <input name="tags" id="tagsInput" value="${(model?.tags || []).map(t => escapeHtml(t)).join(', ')}" placeholder="тег1, тег2, тег3">
+                    </div>
+                    <div class="form-group">
+                        <label>Соцсети (Telegram, Instagram, Twitter)</label>
+                        <div class="file-list" id="socialLinksList"></div>
+                    </div>
                     <div class="form-group"><label>Аватар</label><label class="upload-zone"><input type="file" id="avatarInput" name="avatar" accept="image/*" onchange="previewAvatar()" style="display:none"><span>📷</span><span>Выбрать</span></label><div class="file-list" id="avatarPreview"></div></div>
                     <div class="form-group"><label>Фото</label><label class="upload-zone"><input type="file" id="photosInput" name="photos" accept="image/*" multiple onchange="previewPhotos()" style="display:none"><span>🖼️</span><span>Добавить</span></label><div class="file-list" id="photosPreview"></div></div>
                     <div class="form-group"><label>Видео</label><label class="upload-zone"><input type="file" id="videosInput" name="videos" multiple onchange="previewVideos()" style="display:none"><span>🎬</span><span>Добавить</span></label><div class="file-list" id="videosPreview"></div></div>
@@ -640,6 +682,7 @@
                 </form>
 `;
             updateFileLists();
+            renderSocialLinks();
         }
 
         function previewAvatar() {
@@ -799,12 +842,16 @@
         async function save(e) {
             e.preventDefault();
             const form = new FormData(e.target);
-            
-            form.set('tags', '[]');
-            form.set('social_links', '[]');
+
+            const tagsInput = $('tagsInput')?.value || '';
+            const tags = tagsInput.split(',').map(t => t.trim()).filter(t => t);
+            form.set('tags', JSON.stringify(tags));
+
+            const socialLinks = collectSocialLinks();
+            form.set('social_links', JSON.stringify(socialLinks));
 
             const url = window.editingId ? `/api/models/${window.editingId}` : '/api/models';
-            
+
             try {
                 const res = await fetch(url, { method: window.editingId ? 'PUT' : 'POST', body: form });
                 if (!res.ok) {
@@ -818,6 +865,39 @@
             }
             closeModal();
             loadModels();
+        }
+
+        function renderSocialLinks() {
+            const list = $('socialLinksList');
+            if (!list) return;
+            const links = window.existingSocialLinks || [];
+            list.innerHTML = links.length
+                ? links.map((l, i) => `<div class="file-item"><input type="text" placeholder="Название" value="${escapeHtml(l.platform||'')}" data-platform="${i}"><input type="text" placeholder="Ссылка" value="${escapeHtml(l.url||'')}" data-url="${i}"><button onclick="removeSocialLink(${i})">×</button></div>`).join('')
+                : '<button type="button" class="btn btn-secondary btn-sm" onclick="addSocialLink()">+ Добавить</button>';
+        }
+
+        function addSocialLink() {
+            window.existingSocialLinks = window.existingSocialLinks || [];
+            window.existingSocialLinks.push({ platform: '', url: '' });
+            renderSocialLinks();
+        }
+
+        function removeSocialLink(index) {
+            window.existingSocialLinks.splice(index, 1);
+            renderSocialLinks();
+        }
+
+        function collectSocialLinks() {
+            const links = [];
+            const platforms = document.querySelectorAll('[data-platform]');
+            const urls = document.querySelectorAll('[data-url]');
+            platforms.forEach((p, i) => {
+                const url = urls[i]?.value?.trim();
+                if (p.value.trim() || url) {
+                    links.push({ platform: p.value.trim(), url: url });
+                }
+            });
+            return links;
         }
 
         function confirmDelete(id) {
